@@ -15,15 +15,16 @@ pub use pnorm_descent::*;
 pub trait SteepestDescent {
     type LineSearch: LineSearch;
     // compute the descent direction
-    fn compute_direction(&self, grad_k: &Array1<Floating>) -> Array1<Floating>;
+    fn compute_direction(&mut self, grad_k: &DVector<Floating>);
+    fn direction(&self) -> &DVector<Floating>;
     fn grad_tol(&self) -> Floating;
     fn line_search(&self) -> &Self::LineSearch;
     fn minimize(
-        &self,
-        x_0: Array1<Floating>, // initial iterate
-        f_and_g: impl Fn(&Array1<Floating>) -> (Floating, Array1<Floating>), // oracle that returns the value of the function and its gradient
+        &mut self,
+        x_0: DVector<Floating>, // initial iterate
+        f_and_g: impl Fn(&DVector<Floating>) -> (Floating, DVector<Floating>), // oracle that returns the value of the function and its gradient
         max_iter: usize, // maximum number of iterations
-    ) -> Array1<Floating> {
+    ) -> DVector<Floating> {
         let mut x_k = x_0;
         let mut i = 0;
         let mut convergence = false;
@@ -34,7 +35,8 @@ pub trait SteepestDescent {
                 convergence = true;
                 break;
             }
-            let direction_k = self.compute_direction(&grad_k);
+            self.compute_direction(&grad_k);
+            let direction_k = self.direction();
             let step = self
                 .line_search()
                 .compute_step_len(&x_k, &direction_k, &f_and_g, max_iter);

@@ -14,8 +14,8 @@ impl BackTracking {
         &self,
         f_k: Floating,
         f_kp1: Floating,
-        grad_k: Array1<Floating>,
-        direction_k: &Array1<Floating>,
+        grad_k: DVector<Floating>,
+        direction_k: &DVector<Floating>,
     ) -> bool {
         f_kp1 - f_k <= self.alpha * grad_k.dot(direction_k)
     }
@@ -24,9 +24,9 @@ impl BackTracking {
 impl LineSearch for BackTracking {
     fn compute_step_len(
         &self,
-        x_k: &Array1<Floating>,
-        direction_k: &Array1<Floating>,
-        f_and_g: impl Fn(&Array1<Floating>) -> (Floating, Array1<Floating>),
+        x_k: &DVector<Floating>,
+        direction_k: &DVector<Floating>,
+        f_and_g: impl Fn(&DVector<Floating>) -> (Floating, DVector<Floating>),
         max_iter: usize,
     ) -> Floating {
         let mut t = 1.0;
@@ -60,7 +60,7 @@ impl LineSearch for BackTracking {
 
 mod backtracking_tests {
     use super::*;
-    use ndarray::arr1;
+    use nalgebra::DVector;
     use tracing::info;
 
     #[test]
@@ -74,15 +74,15 @@ mod backtracking_tests {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
-        let f_and_g = |x: &Array1<Floating>| -> (Floating, Array1<Floating>) {
+        let f_and_g = |x: &DVector<Floating>| -> (Floating, DVector<Floating>) {
             let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
-            let g = arr1(&[x[0], gamma * x[1]]);
+            let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g)
         };
         let max_iter = 1000;
         //here we define a rough gradient descent method that uses backtracking line search
         let mut k = 1;
-        let mut iterate = arr1(&[180.0, 152.0]);
+        let mut iterate = DVector::from(vec![180.0, 152.0]);
         let backtracking = BackTracking::new(1e-4, 0.5);
         let gradient_tol = 1e-12;
 

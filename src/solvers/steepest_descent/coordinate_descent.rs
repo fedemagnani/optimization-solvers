@@ -5,28 +5,18 @@ use super::*;
 pub struct CoordinateDescent<T> {
     line_search: T, // line search algorithm to compute step length after finding a direction
     grad_tol: Floating, // tolerance for the gradient as exit condition
-}
-
-impl<T> Default for CoordinateDescent<T>
-where
-    T: Default,
-{
-    fn default() -> Self {
-        CoordinateDescent {
-            line_search: T::default(),
-            grad_tol: 1e-6,
-        }
-    }
+    direction: DVector<Floating>, // buffer to store the result of the matrix-vector product
 }
 
 impl<T> CoordinateDescent<T>
 where
     T: LineSearch,
 {
-    pub fn new(line_search: T, grad_tol: Floating) -> Self {
+    pub fn new(line_search: T, grad_tol: Floating, n: usize) -> Self {
         CoordinateDescent {
             line_search,
             grad_tol,
+            direction: DVector::zeros(n),
         }
     }
 }
@@ -37,7 +27,7 @@ where
 {
     type LineSearch = T;
 
-    fn compute_direction(&self, grad_k: &Array1<Floating>) -> Array1<Floating> {
+    fn compute_direction(&mut self, grad_k: &DVector<Floating>) {
         // Differently from the gradient descent, here we pick the highest absolute value of the gradient and we multiply it with the vector of the canonical basis associated with its entry
         let (position, max_value) =
             grad_k
@@ -50,9 +40,13 @@ where
                         (idx, max)
                     }
                 });
-        let mut direction_k = Array1::zeros(grad_k.len());
+        let mut direction_k = DVector::zeros(grad_k.len());
         direction_k[position] = -max_value.signum();
-        direction_k
+        self.direction.copy_from(&direction_k);
+    }
+
+    fn direction(&self) -> &DVector<Floating> {
+        &self.direction
     }
 
     fn grad_tol(&self) -> Floating {
@@ -66,7 +60,7 @@ where
 
 mod steepest_descent_l1_test {
     use super::*;
-    use ndarray::arr1;
+    use nalgebra::DVector;
 
     #[test]
     pub fn test_min() {
@@ -76,9 +70,9 @@ mod steepest_descent_l1_test {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
-        let f_and_g = |x: &Array1<Floating>| -> (Floating, Array1<Floating>) {
+        let f_and_g = |x: &DVector<Floating>| -> (Floating, DVector<Floating>) {
             let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
-            let g = arr1(&[x[0], gamma * x[1]]);
+            let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g)
         };
         // Linesearch builder
@@ -88,11 +82,12 @@ mod steepest_descent_l1_test {
 
         // Gradient descent builder
         let tol = 1e-12;
-        let sdl1 = CoordinateDescent::new(ls, tol);
+        let n = 2;
+        let mut sdl1 = CoordinateDescent::new(ls, tol, n);
 
         // Minimization
         let max_iter = 1000;
-        let x_0 = arr1(&[180.0, 152.0]);
+        let x_0 = DVector::from(vec![180.0, 152.0]);
         let x_min = sdl1.minimize(x_0, f_and_g, max_iter);
 
         assert!((x_min[0] - 0.0).abs() < 1e-6);

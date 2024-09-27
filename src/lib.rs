@@ -1,4 +1,5 @@
-use ndarray::{Array1, Array2};
+use nalgebra::{DMatrix, DVector};
+use std::ops::Mul;
 use tracing::{debug, info, warn};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
@@ -26,9 +27,9 @@ pub type Floating = f64;
 pub trait LineSearch {
     fn compute_step_len(
         &self,
-        x_k: &Array1<Floating>,         // current iterate
-        direction_k: &Array1<Floating>, // direction of the ray along which we are going to search
-        f_and_g: impl Fn(&Array1<Floating>) -> (Floating, Array1<Floating>), // oracle that returns the value of the function and its gradient
+        x_k: &DVector<Floating>,         // current iterate
+        direction_k: &DVector<Floating>, // direction of the ray along which we are going to search
+        f_and_g: impl Fn(&DVector<Floating>) -> (Floating, DVector<Floating>), // oracle that returns the value of the function and its gradient
         max_iter: usize, // maximum number of iterations during line search (if direction update is costly, set this high to perform more exact line search)
     ) -> Floating; //returns the scalar step size
 }
@@ -46,5 +47,8 @@ pub mod solvers {
     use super::*;
     pub mod steepest_descent;
     pub use steepest_descent::*;
+
+    pub mod newton;
+    pub use newton::*;
 }
 pub use linesearch::*;

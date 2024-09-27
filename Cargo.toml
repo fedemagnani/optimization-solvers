@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ndarray = "0.16.1"
+nalgebra = { git = "https://github.com/dimforge/nalgebra", rev = "48c8f6a5053fac48e305f5e5e0004a332811d092" }
+# nalgebra-lapack = "0.25.0"
 tracing = "0.1.40"
 tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3.18", features = [
