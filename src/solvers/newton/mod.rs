@@ -19,10 +19,23 @@ where
         grad_k: &DVector<Floating>,
         hessian_k: &DMatrix<Floating>,
     ) -> (DVector<Floating>, Floating) {
-        //[TODO]: Boyd recommends several alternatives to the solution of Newton system which take advantage of prior information about sparsity/banded bandwidth of the hessian.
-        let cholesky = hessian_k.clone().cholesky().unwrap();
-        let w = cholesky.solve(&-grad_k);
-        (cholesky.solve(&w), w.dot(&w))
+        // //[TODO]: Boyd recommends several alternatives to the solution of Newton system which take advantage of prior information about sparsity/banded bandwidth of the hessian.
+        // let cholesky = hessian_k.clone().cholesky().unwrap();
+        // let w = cholesky.solve(&-grad_k);
+        // (cholesky.solve(&w), w.dot(&w))
+
+        // we verify that the matrix is not null
+        match hessian_k.clone().try_inverse() {
+            Some(hessian_inv) => {
+                let direction = -&hessian_inv * grad_k;
+                let decrement_squared = (hessian_inv.clone().mul(&direction)).dot(&direction);
+                (direction, decrement_squared)
+            }
+            None => {
+                warn!(target:"newton","Hessian is singular. Using gradient descent direction.");
+                (-grad_k.clone(), grad_k.dot(grad_k))
+            }
+        }
     }
     fn minimize(
         &mut self,
@@ -73,14 +86,14 @@ mod newton_test {
         let tracer = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
-        let gamma = 8.0;
+        let gamma = 1222.0;
         let f_and_g = |x: &DVector<Floating>| -> (Floating, DVector<Floating>) {
             let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
             let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g)
         };
         let hessian = |_: &DVector<Floating>| -> DMatrix<Floating> {
-            DMatrix::from_iterator(2, 2, vec![1.0, 0.0, 0.0, 1.0 / gamma])
+            DMatrix::from_iterator(2, 2, vec![1.0, 0.0, 0.0, gamma])
         };
 
         // Linesearch builder
@@ -89,7 +102,7 @@ mod newton_test {
         let ls = BackTracking::new(alpha, beta);
 
         // newton builder
-        let tol = 1e-12;
+        let tol = 1e-8;
         let mut nt = Newton::new(ls, tol);
 
         // Minimization
