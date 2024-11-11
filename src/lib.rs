@@ -1,5 +1,5 @@
 use nalgebra::{DMatrix, DVector};
-use std::ops::Mul;
+
 use tracing::{debug, info, warn};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
@@ -22,33 +22,31 @@ use tracing_subscriber::{
 //      - Define a tolerance level "q" and set the general solution <= q. Apply some transformations if needed to solve the inequality for the iteration number k: this gives you a lower bound of the number of iterations needed to achieve the desired tolerance. Typically this lower bound is increasing function of suboptimality of the initial point (f(x_0) - p^*) and the upper bound of the condition number of the hessian (M/m). Of course it should be decreasing of the tolerance level q (the more tolerance you have, the lower is the number of required iterations to achieve that convergence).
 //      - From the inequality of the general solution, apply some transformations to verify what is the convergence rate of the algorithm (for example in the gradient descent if you apply the log you come up with a function which is linear in k, describing a linear convergence rate).
 
-pub type Floating = f64;
-
-pub trait LineSearch {
-    fn compute_step_len(
-        &self,
-        x_k: &DVector<Floating>,         // current iterate
-        direction_k: &DVector<Floating>, // direction of the ray along which we are going to search
-        f_and_g: impl Fn(&DVector<Floating>) -> (Floating, DVector<Floating>), // oracle that returns the value of the function and its gradient
-        max_iter: usize, // maximum number of iterations during line search (if direction update is costly, set this high to perform more exact line search)
-    ) -> Floating; //returns the scalar step size
-}
-
 pub mod tracer;
 pub use tracer::*;
 
-pub mod linesearch {
+pub mod solver;
+pub use solver::*;
+
+pub mod func_eval;
+pub use func_eval::*;
+
+pub mod line_search;
+pub use line_search::*;
+
+pub mod number;
+pub use number::*;
+
+pub mod quasi_newton {
     use super::*;
-    pub mod backtracking;
-    pub use backtracking::*;
+    pub mod bfgs;
+    pub use bfgs::*;
 }
 
-pub mod solvers {
-    use super::*;
-    pub mod steepest_descent;
-    pub use steepest_descent::*;
+pub mod steepest_descent;
+pub use steepest_descent::*;
 
-    pub mod newton;
-    pub use newton::*;
-}
-pub use linesearch::*;
+pub mod newton;
+pub use newton::*;
+
+pub use line_search::*;
