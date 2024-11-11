@@ -4,6 +4,14 @@ pub trait ComputeDirection {
     fn compute_direction(&mut self, eval: &FuncEval) -> DVector<Floating>;
 }
 
+#[derive(thiserror::Error, Debug)]
+pub enum SolverError {
+    #[error("Max iter reached")]
+    MaxIterReached,
+    #[error("Out of domain")]
+    OutOfDomain,
+}
+
 //Template pattern for solvers
 pub trait Solver: ComputeDirection {
     type LS: LineSearch;
@@ -25,28 +33,42 @@ pub trait Solver: ComputeDirection {
     ) {
     }
 
-    fn minimize(&mut self, oracle: impl Fn(&DVector<Floating>) -> FuncEval, max_iter: usize) {
+    fn minimize(
+        &mut self,
+        oracle: impl Fn(&DVector<Floating>) -> FuncEval,
+        max_iter_solver: usize,
+        max_iter_line_search: usize,
+    ) -> Result<(), SolverError> {
         *self.k_mut() = 0;
-        while &max_iter > self.k() {
+        while &max_iter_solver > self.k() {
             let eval = oracle(self.xk());
+            if eval.f().is_nan() || eval.f().is_infinite() {
+                error!(target: "solver","Minimization completed: next iterate is out of domain");
+                return Err(SolverError::OutOfDomain);
+            }
             self.evaluation_hook(&eval);
             if self.has_converged(&eval) {
                 info!(
+                    target: "solver",
                     "Minimization completed: convergence in {} iterations",
                     self.k()
                 );
-                return;
+                return Ok(());
             }
             let direction = self.compute_direction(&eval);
             self.direction_hook(&eval, &direction);
-            let step =
-                self.line_search()
-                    .compute_step_len(self.xk(), &direction, &oracle, max_iter);
+            let step = self.line_search().compute_step_len(
+                self.xk(),
+                &direction,
+                &oracle,
+                max_iter_line_search,
+            );
             let next_iterate = self.xk() + step * &direction;
             self.step_hook(&eval, &direction, &step, &next_iterate, &oracle);
             *self.xk_mut() = next_iterate;
             *self.k_mut() += 1;
         }
-        warn!("Minimization completed: max iter reached during");
+        warn!(target: "solver","Minimization completed: max iter reached during");
+        Err(SolverError::MaxIterReached)
     }
 }

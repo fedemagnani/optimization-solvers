@@ -1,6 +1,6 @@
 use nalgebra::{DMatrix, DVector};
 
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer, Registry,

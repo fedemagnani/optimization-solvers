@@ -31,6 +31,7 @@ impl LineSearch for BackTracking {
     ) -> Floating {
         let mut t = 1.0;
         let mut i = 0;
+
         while max_iter > i {
             let eval = oracle(x_k);
             let x_kp1 = x_k + t * direction_k;
@@ -38,23 +39,24 @@ impl LineSearch for BackTracking {
 
             // we check if we are out of domain
             if eval_kp1.f().is_nan() || eval_kp1.f().is_infinite() {
-                warn!(target: "backtracking line search", "Step size too big: next iterate is out of domain. Decreasing step by beta.");
+                warn!(target: "backtracking line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
                 t *= self.beta;
                 continue;
             }
 
             if self.sufficient_decrease_condition(eval.f(), eval_kp1.f(), eval.g(), direction_k) {
-                break;
+                return t;
             }
 
             //if we are here, it means that the we still didn't meet the exit condition, so we decrease the step size accordingly
             t *= self.beta;
             i += 1;
         }
+        warn!(target: "backtracking line search", "Max iter reached. Early stopping.");
+        t
         // worst case scenario: t=0 (or t>0 but t<1 because of early stopping).
         // if t=0 we are not updating the iterate
         // if early stop triggered, we benefit from some image reduction but it is not enough to be considered satisfactory
-        t
     }
 }
 
@@ -103,7 +105,7 @@ mod backtracking_tests {
                 max_iter,
             );
             //we perform the update
-            iterate = iterate + t * direction;
+            iterate += t * direction;
             k += 1;
         }
         println!("Iterate: {:?}", iterate);

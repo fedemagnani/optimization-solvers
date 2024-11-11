@@ -68,9 +68,11 @@ mod steepest_descent_l1_test {
         let mut sdl1 = CoordinateDescent::new(ls, tol, x_0);
 
         // Minimization
-        let max_iter = 1000;
+        let max_iter_solver = 1000;
+        let max_iter_line_search = 100;
 
-        sdl1.minimize(f_and_g, max_iter);
+        sdl1.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+            .unwrap();
 
         println!("Iterate: {:?}", sdl1.xk());
 

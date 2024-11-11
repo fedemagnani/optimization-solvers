@@ -101,9 +101,11 @@ mod newton_test {
         let mut nt = Newton::new(ls, tol, x_0);
 
         // Minimization
-        let max_iter = 1000;
+        let max_iter_solver = 1000;
+        let max_iter_line_search = 100;
 
-        nt.minimize(oracle, max_iter);
+        nt.minimize(oracle, max_iter_solver, max_iter_line_search)
+            .unwrap();
 
         println!("Iterate: {:?}", nt.xk());
 
