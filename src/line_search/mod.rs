@@ -5,7 +5,8 @@ pub mod projected_backtracking;
 pub use projected_backtracking::*;
 pub mod morethuente;
 pub use morethuente::*;
-
+pub mod projected_morethuente;
+pub use projected_morethuente::*;
 pub trait LineSearch {
     fn compute_step_len(
         &self,

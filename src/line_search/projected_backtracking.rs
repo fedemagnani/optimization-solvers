@@ -130,9 +130,19 @@ mod backtracking_tests {
                 &f_and_g,
                 max_iter,
             );
+            // As exit condition, we take the infinity norm of the difference between the projected iterate and the next iterate
             //we perform the update
+            let cached_iterate = iterate.clone();
             iterate += t * direction;
             iterate = iterate.box_projection(&lower_bound, &upper_bound);
+            if (cached_iterate - &iterate)
+                .iter()
+                .fold(0.0f64, |acc, x| acc.max(x.abs()))
+                < gradient_tol
+            {
+                warn!("Infinity norm of iterate difference is lower than tolerance. Convergence!.");
+                break;
+            }
             k += 1;
         }
         println!("Iterate: {:?}", iterate);
