@@ -131,26 +131,27 @@ mod test_bfgs {
         let tracer = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
-        let gamma = 1.0;
+        let gamma = 1.;
         let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
             // we return infinity if either x[0] or x[1] is less than one
 
-            if x[0] < 1.0 || x[1] < 1.0 {
-                return FuncEvalMultivariate::new(
-                    Floating::INFINITY,
-                    DVector::from_vec(vec![Floating::INFINITY, Floating::INFINITY]),
-                );
-            }
+            // if x[0] < 1.0 || x[1] < 1.0 {
+            //     return FuncEvalMultivariate::new(
+            //         Floating::INFINITY,
+            //         DVector::from_vec(vec![Floating::INFINITY, Floating::INFINITY]),
+            //     );
+            // }
 
-            let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
-            let g = DVector::from(vec![x[0], gamma * x[1]]);
+            let f = 0.5 * ((x[0] + 1.).powi(2) + gamma * (x[1] - 1.).powi(2));
+            let g = DVector::from(vec![x[0] + 1., gamma * (x[1] - 1.)]);
             (f, g).into()
         };
 
         // Linesearch builder
         let alpha = 1e-4;
         let beta = 0.5; //0.5 is like backtracking line search
-        let ls = BackTracking::new(alpha, beta);
+                        // let ls = BackTracking::new(alpha, beta);
+        let ls = MoreThuente::default();
 
         // pnorm descent builder
         let tol = 1e-12;
