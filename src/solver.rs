@@ -1,7 +1,7 @@
 use super::*;
 
 pub trait ComputeDirection {
-    fn compute_direction(&mut self, eval: &FuncEval) -> DVector<Floating>;
+    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating>;
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -16,26 +16,27 @@ pub enum SolverError {
 pub trait Solver: ComputeDirection {
     type LS: LineSearch;
     fn line_search(&self) -> &Self::LS;
+    fn line_search_mut(&mut self) -> &mut Self::LS;
     fn xk(&self) -> &DVector<Floating>;
     fn xk_mut(&mut self) -> &mut DVector<Floating>;
     fn k(&self) -> &usize;
     fn k_mut(&mut self) -> &mut usize;
-    fn has_converged(&self, eval: &FuncEval) -> bool;
-    fn evaluation_hook(&mut self, _eval: &FuncEval) {}
-    fn direction_hook(&mut self, _eval: &FuncEval, _direction: &DVector<Floating>) {}
+    fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool;
+    fn evaluation_hook(&mut self, _eval: &FuncEvalMultivariate) {}
+    fn direction_hook(&mut self, _eval: &FuncEvalMultivariate, _direction: &DVector<Floating>) {}
     fn step_hook(
         &mut self,
-        _eval: &FuncEval,
+        _eval: &FuncEvalMultivariate,
         _direction: &DVector<Floating>,
         _step: &Floating,
         _next_iterate: &DVector<Floating>,
-        _oracle: &impl Fn(&DVector<Floating>) -> FuncEval,
+        _oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
     ) {
     }
 
     fn minimize(
         &mut self,
-        oracle: impl Fn(&DVector<Floating>) -> FuncEval,
+        oracle: impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter_solver: usize,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {

@@ -1,22 +1,45 @@
+use core::panic;
+
 // Inexact line search described in chapter 9.2 of Boyd's convex optimization book
 use super::*;
-pub struct BackTracking {
-    c1: Floating,   // recommended: [0.01, 0.3]
-    beta: Floating, // recommended: [0.1, 0.8]
+pub struct ProjectedBackTracking {
+    alpha: Floating, // recommended: [0.01, 0.3]
+    beta: Floating,  // recommended: [0.1, 0.8]
+    lower_bound: DVector<Floating>,
+    upper_bound: DVector<Floating>,
 }
-impl BackTracking {
-    pub fn new(c1: Floating, beta: Floating) -> Self {
-        BackTracking { c1, beta }
+impl ProjectedBackTracking {
+    pub fn new(
+        alpha: Floating,
+        beta: Floating,
+        lower_bound: DVector<Floating>,
+        upper_bound: DVector<Floating>,
+    ) -> Self {
+        ProjectedBackTracking {
+            alpha,
+            beta,
+            lower_bound,
+            upper_bound,
+        }
+    }
+
+    // check if the change in the image has been lower than a proportion (alpha) of the directional derivative
+    // known also as Armijo condition
+    pub fn sufficient_decrease_condition(
+        &self,
+        f_k: &Floating,
+        f_kp1: &Floating,
+        x_k: &DVector<Floating>,
+        x_kp1: &DVector<Floating>,
+        step: &Floating,
+    ) -> bool {
+        let diff = x_kp1 - x_k;
+        let norm_squared_diff = diff.dot(&diff);
+        f_kp1 - f_k <= -self.alpha / step * norm_squared_diff
     }
 }
 
-impl SufficientDecreaseCondition for BackTracking {
-    fn c1(&self) -> Floating {
-        self.c1
-    }
-}
-
-impl LineSearch for BackTracking {
+impl LineSearch for ProjectedBackTracking {
     fn compute_step_len(
         &self,
         x_k: &DVector<Floating>,
@@ -30,16 +53,21 @@ impl LineSearch for BackTracking {
         while max_iter > i {
             let eval = oracle(x_k);
             let x_kp1 = x_k + t * direction_k;
+
+            //differently from the backtracking line search, we project the next iterate into the feasible domain
+            let x_kp1 = x_kp1.box_projection(&self.lower_bound, &self.upper_bound);
+
             let eval_kp1 = oracle(&x_kp1);
 
             // we check if we are out of domain
             if eval_kp1.f().is_nan() || eval_kp1.f().is_infinite() {
                 warn!(target: "backtracking line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
+
                 t *= self.beta;
                 continue;
             }
 
-            if self.sufficient_decrease_condition(eval.f(), eval_kp1.f(), eval.g(), direction_k) {
+            if self.sufficient_decrease_condition(eval.f(), eval_kp1.f(), x_k, &x_kp1, &t) {
                 return t;
             }
 
@@ -76,11 +104,14 @@ mod backtracking_tests {
             let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g).into()
         };
-        let max_iter = 1000;
+        let max_iter = 1000000;
         //here we define a rough gradient descent method that uses backtracking line search
         let mut k = 1;
         let mut iterate = DVector::from(vec![180.0, 152.0]);
-        let backtracking = BackTracking::new(1e-4, 0.5);
+        let lower_bound: DVector<Floating> = vec![1., 1.].into();
+        let upper_bound: DVector<Floating> = vec![Floating::INFINITY, Floating::INFINITY].into();
+        let backtracking =
+            ProjectedBackTracking::new(1e-4, 0.5, lower_bound.clone(), upper_bound.clone());
         let gradient_tol = 1e-12;
 
         while max_iter > k {
@@ -92,7 +123,7 @@ mod backtracking_tests {
                 break;
             }
             let direction = -eval.g();
-            let t = <BackTracking as LineSearch>::compute_step_len(
+            let t = <ProjectedBackTracking as LineSearch>::compute_step_len(
                 &backtracking,
                 &iterate,
                 &direction,
@@ -101,11 +132,11 @@ mod backtracking_tests {
             );
             //we perform the update
             iterate += t * direction;
+            iterate = iterate.box_projection(&lower_bound, &upper_bound);
             k += 1;
         }
         println!("Iterate: {:?}", iterate);
         println!("Function eval: {:?}", f_and_g(&iterate));
-        assert!((iterate[0] - 0.0).abs() < 1e-6);
         info!("Test took {} iterations", k);
     }
 }

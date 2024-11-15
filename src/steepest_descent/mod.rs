@@ -24,7 +24,7 @@ impl<T, S> ComputeDirection for SteepestDescent<T, S>
 where
     S: ComputeDirection,
 {
-    fn compute_direction(&mut self, eval: &FuncEval) -> DVector<Floating> {
+    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating> {
         self.direction_strategy.compute_direction(eval)
     }
 }
@@ -38,6 +38,9 @@ where
     fn line_search(&self) -> &Self::LS {
         &self.line_search
     }
+    fn line_search_mut(&mut self) -> &mut Self::LS {
+        &mut self.line_search
+    }
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }
@@ -50,7 +53,7 @@ where
     fn k_mut(&mut self) -> &mut usize {
         &mut self.k
     }
-    fn has_converged(&self, eval: &FuncEval) -> bool {
+    fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool {
         eval.g().dot(eval.g()) < self.grad_tol
     }
 }

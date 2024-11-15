@@ -14,7 +14,7 @@ impl PnormDescentStrategy {
 }
 
 impl ComputeDirection for PnormDescentStrategy {
-    fn compute_direction(&mut self, eval: &FuncEval) -> DVector<Floating> {
+    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating> {
         // let grad_k = eval.g();
         // self.inverse_p.mul_to(grad_k, &mut self.direction);
         // self.direction.neg_mut();
@@ -53,7 +53,7 @@ mod gpnorm_descent_test {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
-        let f_and_g = |x: &DVector<Floating>| -> FuncEval {
+        let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
             let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
             let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g).into()

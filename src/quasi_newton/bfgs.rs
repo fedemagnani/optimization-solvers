@@ -42,7 +42,7 @@ impl<T> BFGS<T> {
 }
 
 impl<T> ComputeDirection for BFGS<T> {
-    fn compute_direction(&mut self, eval: &FuncEval) -> DVector<Floating> {
+    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating> {
         -&self.approx_inv_hessian * eval.g()
     }
 }
@@ -67,7 +67,10 @@ where
     fn line_search(&self) -> &Self::LS {
         &self.line_search
     }
-    fn has_converged(&self, eval: &FuncEval) -> bool {
+    fn line_search_mut(&mut self) -> &mut Self::LS {
+        &mut self.line_search
+    }
+    fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool {
         // either the gradient is small or the difference between the iterates is small
         // eval.g().norm() < self.tol || self.next_iterate_too_close()
         if self.next_iterate_too_close() {
@@ -82,11 +85,11 @@ where
     }
     fn step_hook(
         &mut self,
-        _eval: &FuncEval,
+        _eval: &FuncEvalMultivariate,
         _direction: &DVector<Floating>,
         _step: &Floating,
         _next_iterate: &DVector<Floating>,
-        _oracle: &impl Fn(&DVector<Floating>) -> FuncEval,
+        _oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
     ) {
         // We update the inverse hessian and the corrections in this hook which is triggered just after the calculation of the next iterate
         let s = _next_iterate - &self.x;
@@ -129,11 +132,11 @@ mod test_bfgs {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.0;
-        let f_and_g = |x: &DVector<Floating>| -> FuncEval {
+        let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
             // we return infinity if either x[0] or x[1] is less than one
 
             if x[0] < 1.0 || x[1] < 1.0 {
-                return FuncEval::new(
+                return FuncEvalMultivariate::new(
                     Floating::INFINITY,
                     DVector::from_vec(vec![Floating::INFINITY, Floating::INFINITY]),
                 );

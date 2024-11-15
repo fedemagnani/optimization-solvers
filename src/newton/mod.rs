@@ -22,7 +22,7 @@ impl<T> Newton<T> {
 }
 
 impl<T> ComputeDirection for Newton<T> {
-    fn compute_direction(&mut self, eval: &FuncEval) -> DVector<Floating> {
+    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating> {
         let hessian = eval
             .hessian()
             .clone()
@@ -57,13 +57,16 @@ where
     fn line_search(&self) -> &Self::LS {
         &self.line_search
     }
+    fn line_search_mut(&mut self) -> &mut Self::LS {
+        &mut self.line_search
+    }
     fn xk_mut(&mut self) -> &mut DVector<Floating> {
         &mut self.x
     }
     fn k_mut(&mut self) -> &mut usize {
         &mut self.k
     }
-    fn has_converged(&self, _: &FuncEval) -> bool {
+    fn has_converged(&self, _: &FuncEvalMultivariate) -> bool {
         match self.decrement_squared {
             Some(decrement_squared) => decrement_squared * 0.5 < self.tol,
             None => false,
@@ -83,11 +86,11 @@ mod newton_test {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1222.0;
-        let oracle = |x: &DVector<Floating>| -> FuncEval {
+        let oracle = |x: &DVector<Floating>| -> FuncEvalMultivariate {
             let f: f64 = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
             let g = DVector::from(vec![x[0], gamma * x[1]]);
             let hessian = DMatrix::from_iterator(2, 2, vec![1.0, 0.0, 0.0, gamma]);
-            FuncEval::new(f, g).with_hessian(hessian)
+            FuncEvalMultivariate::new(f, g).with_hessian(hessian)
         };
 
         // Linesearch builder
