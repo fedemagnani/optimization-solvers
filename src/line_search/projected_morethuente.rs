@@ -166,7 +166,7 @@ impl LineSearch for ProjectedMoreThuente {
     fn compute_step_len(
         &self,
         x_k: &DVector<Floating>,         // current iterate
-        direction_k: &DVector<Floating>, // direction of the ray along which we are going to search
+        direction_k: &DVector<Floating>, // direction of the ray along which we are going to search (ASSUMES DIRECTION TO BE ZERO AT BOUNDS)
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate, // oracle
         max_iter: usize, // maximum number of iterations during line search (if direction update is costly, set this high to perform more exact line search)
     ) -> Floating {
@@ -188,7 +188,7 @@ impl LineSearch for ProjectedMoreThuente {
                 eval_t.f(),
                 eval_0.g(),
                 eval_t.g(),
-                direction_k,
+                &direction_k,
             ) {
                 info!("Strong Wolfe conditions satisfied at iteration {}", i);
 
@@ -205,8 +205,8 @@ impl LineSearch for ProjectedMoreThuente {
                 return t;
             }
 
-            let phi_t = Self::phi(&eval_t, direction_k);
-            let phi_0 = Self::phi(&eval_0, direction_k);
+            let phi_t = Self::phi(&eval_t, &direction_k);
+            let phi_0 = Self::phi(&eval_0, &direction_k);
 
             let psi_t = self.psi(&phi_0, &phi_t, &t);
 
@@ -218,7 +218,7 @@ impl LineSearch for ProjectedMoreThuente {
             let proj_xtl =
                 (x_k + tl * direction_k).box_projection(&self.lower_bound, &self.upper_bound);
             let eval_tl = oracle(&proj_xtl);
-            let phi_tl = Self::phi(&eval_tl, direction_k);
+            let phi_tl = Self::phi(&eval_tl, &direction_k);
 
             // using auxiliary or modified evaluation according to the flag
             let (f_tl, g_tl, f_t, g_t) = if use_modified_updating {
@@ -271,7 +271,7 @@ impl LineSearch for ProjectedMoreThuente {
             else {
                 let (f_tu, g_tu) = {
                     let eval_tu = oracle(&(x_k + tu * direction_k));
-                    let phi_tu = Self::phi(&eval_tu, direction_k);
+                    let phi_tu = Self::phi(&eval_tu, &direction_k);
                     if use_modified_updating {
                         (*phi_tu.f(), *phi_tu.g())
                     } else {

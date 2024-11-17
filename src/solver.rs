@@ -33,6 +33,7 @@ pub trait Solver: ComputeDirection {
         _oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
     ) {
     }
+    fn last_hook(&mut self, _eval: &FuncEvalMultivariate) {}
 
     fn minimize(
         &mut self,
@@ -68,6 +69,7 @@ pub trait Solver: ComputeDirection {
             self.step_hook(&eval, &direction, &step, &next_iterate, &oracle);
             *self.xk_mut() = next_iterate;
             *self.k_mut() += 1;
+            self.last_hook(&eval);
         }
         warn!(target: "solver","Minimization completed: max iter reached during");
         Err(SolverError::MaxIterReached)
