@@ -1,7 +1,12 @@
+use core::panic;
+
 use super::*;
 
 pub trait ComputeDirection {
-    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating>;
+    fn compute_direction(
+        &mut self,
+        eval: &FuncEvalMultivariate,
+    ) -> Result<DVector<Floating>, SolverError>;
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -12,7 +17,7 @@ pub enum SolverError {
     OutOfDomain,
 }
 
-//Template pattern for solvers
+//Template pattern for solvers. Methods that are already implemented can be freely overriden.
 pub trait Solver: ComputeDirection {
     type LS: LineSearch;
     fn line_search(&self) -> &Self::LS;
@@ -22,18 +27,40 @@ pub trait Solver: ComputeDirection {
     fn k(&self) -> &usize;
     fn k_mut(&mut self) -> &mut usize;
     fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool;
-    fn evaluation_hook(&mut self, _eval: &FuncEvalMultivariate) {}
-    fn direction_hook(&mut self, _eval: &FuncEvalMultivariate, _direction: &DVector<Floating>) {}
-    fn step_hook(
+
+    fn setup(&mut self) {}
+
+    fn evaluate_x_k(
         &mut self,
-        _eval: &FuncEvalMultivariate,
-        _direction: &DVector<Floating>,
-        _step: &Floating,
-        _next_iterate: &DVector<Floating>,
-        _oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
-    ) {
+        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+    ) -> Result<FuncEvalMultivariate, SolverError> {
+        let eval = oracle(self.xk());
+        if eval.f().is_nan() || eval.f().is_infinite() {
+            error!(target: "solver","Minimization completed: next iterate is out of domain");
+            return Err(SolverError::OutOfDomain);
+        }
+        Ok(eval)
     }
-    fn last_hook(&mut self, _eval: &FuncEvalMultivariate) {}
+
+    fn update_next_iterate(
+        &mut self,
+        _: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
+        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        direction: &DVector<Floating>,
+        max_iter_line_search: usize,
+    ) -> Result<(), SolverError> {
+        let step = self.line_search().compute_step_len(
+            self.xk(),
+            direction,
+            &oracle,
+            max_iter_line_search,
+        );
+
+        let next_iterate = self.xk() + step * direction;
+        *self.xk_mut() = next_iterate;
+
+        Ok(())
+    }
 
     fn minimize(
         &mut self,
@@ -42,13 +69,12 @@ pub trait Solver: ComputeDirection {
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
         *self.k_mut() = 0;
+
+        self.setup();
+
         while &max_iter_solver > self.k() {
-            let eval = oracle(self.xk());
-            if eval.f().is_nan() || eval.f().is_infinite() {
-                error!(target: "solver","Minimization completed: next iterate is out of domain");
-                return Err(SolverError::OutOfDomain);
-            }
-            self.evaluation_hook(&eval);
+            let eval = self.evaluate_x_k(&oracle)?;
+
             if self.has_converged(&eval) {
                 info!(
                     target: "solver",
@@ -57,21 +83,17 @@ pub trait Solver: ComputeDirection {
                 );
                 return Ok(());
             }
-            let direction = self.compute_direction(&eval);
-            self.direction_hook(&eval, &direction);
-            let step = self.line_search().compute_step_len(
-                self.xk(),
-                &direction,
-                &oracle,
-                max_iter_line_search,
-            );
-            let next_iterate = self.xk() + step * &direction;
-            self.step_hook(&eval, &direction, &step, &next_iterate, &oracle);
-            *self.xk_mut() = next_iterate;
+
+            let direction = self.compute_direction(&eval)?;
+            debug!(target: "solver","Gradient: {:?}, Direction: {:?}", eval.g(), direction);
+            self.update_next_iterate(&eval, &oracle, &direction, max_iter_line_search)?;
+
+            debug!(target: "solver","Iterate: {:?}", self.xk());
+            debug!(target: "solver","Function eval: {:?}", eval);
+
             *self.k_mut() += 1;
-            self.last_hook(&eval);
         }
-        warn!(target: "solver","Minimization completed: max iter reached during");
+        warn!(target: "solver","Minimization completed: max iter reached during minimization");
         Err(SolverError::MaxIterReached)
     }
 }

@@ -22,7 +22,10 @@ impl<T> Newton<T> {
 }
 
 impl<T> ComputeDirection for Newton<T> {
-    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating> {
+    fn compute_direction(
+        &mut self,
+        eval: &FuncEvalMultivariate,
+    ) -> Result<DVector<Floating>, SolverError> {
         let hessian = eval
             .hessian()
             .clone()
@@ -33,11 +36,11 @@ impl<T> ComputeDirection for Newton<T> {
                 let direction = -&hessian_inv * eval.g();
                 // we compute also the squared newton decrement
                 self.decrement_squared = Some((hessian_inv * &direction).dot(&direction));
-                direction
+                Ok(direction)
             }
             None => {
                 warn!(target:"newton","Hessian is singular. Using gradient descent direction.");
-                -eval.g()
+                Ok(-eval.g())
             }
         }
     }
@@ -79,7 +82,51 @@ mod newton_test {
     use nalgebra::{Matrix, Matrix2, Vector2};
 
     #[test]
-    pub fn test_min() {
+    pub fn newton_morethuente() {
+        std::env::set_var("RUST_LOG", "info");
+
+        let tracer = Tracer::default()
+            .with_stdout_layer(Some(LogFormat::Normal))
+            .build();
+        let gamma = 1222.0;
+        let oracle = |x: &DVector<Floating>| -> FuncEvalMultivariate {
+            let f: f64 = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
+            let g = DVector::from(vec![x[0], gamma * x[1]]);
+            let hessian = DMatrix::from_iterator(2, 2, vec![1.0, 0.0, 0.0, gamma]);
+            FuncEvalMultivariate::new(f, g).with_hessian(hessian)
+        };
+
+        // Linesearch builder
+
+        let ls = MoreThuente::default();
+
+        // newton builder
+        let tol = 1e-8;
+        let x_0 = DVector::from(vec![1.0, 1.0]);
+        let mut nt = Newton::new(ls, tol, x_0);
+
+        // Minimization
+        let max_iter_solver = 1000;
+        let max_iter_line_search = 100;
+
+        nt.minimize(oracle, max_iter_solver, max_iter_line_search)
+            .unwrap();
+
+        println!("Iterate: {:?}", nt.xk());
+
+        let eval = oracle(nt.xk());
+        println!("Function eval: {:?}", eval);
+        println!("Gradient norm: {:?}", eval.g().norm());
+        println!("tol: {:?}", tol);
+
+        let convergence = nt.has_converged(&eval);
+        println!("Convergence: {:?}", convergence);
+
+        assert!((eval.f() - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    pub fn newton_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
         let tracer = Tracer::default()

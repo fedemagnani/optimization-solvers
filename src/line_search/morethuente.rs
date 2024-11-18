@@ -180,7 +180,7 @@ impl LineSearch for MoreThuente {
             let eval_0 = oracle(x_k);
             let eval_t = oracle(&(x_k + t * direction_k));
             // Check for convergence
-            if self.strong_wolfe_conditions(
+            if self.strong_wolfe_conditions_with_directional_derivative(
                 eval_0.f(),
                 eval_t.f(),
                 eval_0.g(),

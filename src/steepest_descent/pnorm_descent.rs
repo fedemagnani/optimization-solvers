@@ -14,19 +14,22 @@ impl PnormDescentStrategy {
 }
 
 impl ComputeDirection for PnormDescentStrategy {
-    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating> {
+    fn compute_direction(
+        &mut self,
+        eval: &FuncEvalMultivariate,
+    ) -> Result<DVector<Floating>, SolverError> {
         // let grad_k = eval.g();
         // self.inverse_p.mul_to(grad_k, &mut self.direction);
         // self.direction.neg_mut();
         // self.direction.clone()
-        -&self.inverse_p * eval.g()
+        Ok(-&self.inverse_p * eval.g())
     }
 }
-pub type PnormDescent = SteepestDescent<BackTracking, PnormDescentStrategy>;
+pub type PnormDescent<LS> = SteepestDescent<LS, PnormDescentStrategy>;
 
-impl PnormDescent {
+impl<LS> PnormDescent<LS> {
     pub fn new(
-        line_search: BackTracking,
+        line_search: LS,
         grad_tol: Floating,
         x0: DVector<Floating>,
         inverse_p: DMatrix<Floating>,
@@ -37,6 +40,9 @@ impl PnormDescent {
             x: x0,
             k: 0,
             direction_strategy: PnormDescentStrategy::new(inverse_p),
+            lower_bound: None,
+            upper_bound: None,
+            spg: None,
         }
     }
 }
@@ -46,7 +52,52 @@ mod gpnorm_descent_test {
     use nalgebra::{Matrix, Matrix2, Vector2};
 
     #[test]
-    pub fn test_min() {
+    pub fn pnorm_morethuente() {
+        std::env::set_var("RUST_LOG", "info");
+
+        let tracer = Tracer::default()
+            .with_stdout_layer(Some(LogFormat::Normal))
+            .build();
+        let gamma = 90.0;
+        let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
+            let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
+            let g = DVector::from(vec![x[0], gamma * x[1]]);
+            (f, g).into()
+        };
+        // We compute the inverse hessian of the function. Notice that the hessian is constant since the objective function is quadratic
+        let inv_hessian = DMatrix::from_iterator(2, 2, vec![1.0, 0.0, 0.0, 1.0 / gamma]);
+        // let inv_hessian = DMatrix::identity(2, 2);
+
+        // Linesearch builder
+        let ls = MoreThuente::default();
+
+        // pnorm descent builder
+        let tol = 1e-12;
+        let x_0 = DVector::from(vec![180.0, 152.0]);
+        let mut gd = PnormDescent::new(ls, tol, x_0, inv_hessian);
+
+        // Minimization
+        let max_iter_solver = 1000;
+        let max_iter_line_search = 100;
+
+        gd.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+            .unwrap();
+
+        println!("Iterate: {:?}", gd.xk());
+
+        let eval = f_and_g(gd.xk());
+        println!("Function eval: {:?}", eval);
+        println!("Gradient norm: {:?}", eval.g().norm());
+        println!("tol: {:?}", tol);
+
+        let convergence = gd.has_converged(&eval);
+        println!("Convergence: {:?}", convergence);
+
+        assert!((eval.f() - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    pub fn pnorm_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
         let tracer = Tracer::default()

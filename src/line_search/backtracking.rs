@@ -3,10 +3,38 @@ use super::*;
 pub struct BackTracking {
     c1: Floating,   // recommended: [0.01, 0.3]
     beta: Floating, // recommended: [0.1, 0.8]
+    lower_bound: Option<DVector<Floating>>,
+    upper_bound: Option<DVector<Floating>>,
 }
 impl BackTracking {
     pub fn new(c1: Floating, beta: Floating) -> Self {
-        BackTracking { c1, beta }
+        BackTracking {
+            c1,
+            beta,
+            lower_bound: None,
+            upper_bound: None,
+        }
+    }
+    pub fn with_lower_bound(mut self, lower_bound: DVector<Floating>) -> Self {
+        self.lower_bound = Some(lower_bound);
+        self
+    }
+    pub fn with_upper_bound(mut self, upper_bound: DVector<Floating>) -> Self {
+        self.upper_bound = Some(upper_bound);
+        self
+    }
+
+    fn sufficient_decrease_with_bounds(
+        &self,
+        x0: &DVector<Floating>,
+        x: &DVector<Floating>,
+        f0: &Floating,
+        f: &Floating,
+        t: &Floating, //step len
+    ) -> bool {
+        let diff = x - x0;
+        // debug!(target: "backtracking line search", "Modified Armijo rule: f0: {:?}, f: {:?}, t: {:?}, x0: {:?}, x: {:?}, diff: {:?}", f0, f, t, x0, x, diff);
+        f - f0 <= (-&self.c1 / t) * diff.dot(&diff)
     }
 }
 
@@ -26,10 +54,20 @@ impl LineSearch for BackTracking {
     ) -> Floating {
         let mut t = 1.0;
         let mut i = 0;
+        let eval = oracle(x_k);
+        let has_bounds = self.lower_bound.is_some() || self.upper_bound.is_some();
 
         while max_iter > i {
-            let eval = oracle(x_k);
-            let x_kp1 = x_k + t * direction_k;
+            let mut x_kp1 = x_k + t * direction_k;
+            // if it has bounds, we project the next iterate onto the feasible set
+            if has_bounds {
+                if let Some(lower_bound) = &self.lower_bound {
+                    x_kp1 = x_kp1.sup(lower_bound);
+                }
+                if let Some(upper_bound) = &self.upper_bound {
+                    x_kp1 = x_kp1.inf(upper_bound);
+                }
+            }
             let eval_kp1 = oracle(&x_kp1);
 
             // we check if we are out of domain
@@ -39,7 +77,18 @@ impl LineSearch for BackTracking {
                 continue;
             }
 
-            if self.sufficient_decrease_condition(eval.f(), eval_kp1.f(), eval.g(), direction_k) {
+            if has_bounds {
+                if self.sufficient_decrease_with_bounds(x_k, &x_kp1, eval.f(), eval_kp1.f(), &t) {
+                    debug!(target: "backtracking line search", "Modified Armijo rule met. Exiting with step size: {:?} at iteration {:?}", t, i);
+                    return t;
+                }
+            } else if self.sufficient_decrease_with_directional_derivative(
+                eval.f(),
+                eval_kp1.f(),
+                eval.g(),
+                direction_k,
+            ) {
+                debug!(target: "backtracking line search", "Sufficient decrease condition met. Exiting with step size: {:?}", t);
                 return t;
             }
 

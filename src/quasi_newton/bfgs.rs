@@ -42,8 +42,11 @@ impl<T> BFGS<T> {
 }
 
 impl<T> ComputeDirection for BFGS<T> {
-    fn compute_direction(&mut self, eval: &FuncEvalMultivariate) -> DVector<Floating> {
-        -&self.approx_inv_hessian * eval.g()
+    fn compute_direction(
+        &mut self,
+        eval: &FuncEvalMultivariate,
+    ) -> Result<DVector<Floating>, SolverError> {
+        Ok(-&self.approx_inv_hessian * eval.g())
     }
 }
 
@@ -83,25 +86,41 @@ where
             eval.g().norm() < self.tol
         }
     }
-    fn step_hook(
+
+    fn update_next_iterate(
         &mut self,
-        _eval: &FuncEvalMultivariate,
-        _direction: &DVector<Floating>,
-        _step: &Floating,
-        _next_iterate: &DVector<Floating>,
-        _oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
-    ) {
-        // We update the inverse hessian and the corrections in this hook which is triggered just after the calculation of the next iterate
-        let s = _next_iterate - &self.x;
+        eval: &FuncEvalMultivariate,
+        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        direction: &DVector<Floating>,
+        max_iter_line_search: usize,
+    ) -> Result<(), SolverError> {
+        let step = self.line_search().compute_step_len(
+            self.xk(),
+            &direction,
+            &oracle,
+            max_iter_line_search,
+        );
+
+        let next_iterate = self.xk() + step * direction;
+
+        let s = &next_iterate - &self.x;
         self.s_norm = Some(s.norm());
-        if self.next_iterate_too_close() {
-            return;
-        }
-        let y = _oracle(_next_iterate).g() - _eval.g();
+        let y = oracle(&next_iterate).g() - eval.g();
         self.y_norm = Some(y.norm());
-        if self.gradient_next_iterate_too_close() {
-            return;
+
+        //updating iterate here, and then we will update the inverse hessian (if corrections are not too small)
+        *self.xk_mut() = next_iterate;
+
+        // We update the inverse hessian and the corrections in this hook which is triggered just after the calculation of the next iterate
+
+        if self.next_iterate_too_close() {
+            return Ok(());
         }
+
+        if self.gradient_next_iterate_too_close() {
+            return Ok(());
+        }
+
         let ys = &y.dot(&s);
         let rho = 1.0 / ys;
         let w_a = &s * &y.transpose();
@@ -111,6 +130,8 @@ where
         let right_term = self.identity() - (w_b * rho);
         self.approx_inv_hessian =
             (left_term * &self.approx_inv_hessian * right_term) + innovation * rho;
+
+        Ok(())
     }
 }
 
@@ -125,7 +146,7 @@ mod test_bfgs {
     }
 
     #[test]
-    pub fn test_min() {
+    pub fn bfgs_morethuente() {
         std::env::set_var("RUST_LOG", "info");
 
         let tracer = Tracer::default()
@@ -133,24 +154,13 @@ mod test_bfgs {
             .build();
         let gamma = 1.;
         let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
-            // we return infinity if either x[0] or x[1] is less than one
-
-            // if x[0] < 1.0 || x[1] < 1.0 {
-            //     return FuncEvalMultivariate::new(
-            //         Floating::INFINITY,
-            //         DVector::from_vec(vec![Floating::INFINITY, Floating::INFINITY]),
-            //     );
-            // }
-
             let f = 0.5 * ((x[0] + 1.).powi(2) + gamma * (x[1] - 1.).powi(2));
             let g = DVector::from(vec![x[0] + 1., gamma * (x[1] - 1.)]);
             (f, g).into()
         };
 
         // Linesearch builder
-        let alpha = 1e-4;
-        let beta = 0.5; //0.5 is like backtracking line search
-                        // let ls = BackTracking::new(alpha, beta);
+
         let ls = MoreThuente::default();
 
         // pnorm descent builder
@@ -175,6 +185,51 @@ mod test_bfgs {
         let convergence = gd.has_converged(&eval);
         println!("Convergence: {:?}", convergence);
 
-        // assert!((eval.f() - 0.0).abs() < 1e-6);
+        assert!((eval.f() - 0.0).abs() < 1e-6);
+    }
+
+    #[test]
+    pub fn bfgs_backtracking() {
+        std::env::set_var("RUST_LOG", "info");
+
+        let tracer = Tracer::default()
+            .with_stdout_layer(Some(LogFormat::Normal))
+            .build();
+        let gamma = 1.;
+        let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
+            let f = 0.5 * ((x[0] + 1.).powi(2) + gamma * (x[1] - 1.).powi(2));
+            let g = DVector::from(vec![x[0] + 1., gamma * (x[1] - 1.)]);
+            (f, g).into()
+        };
+
+        // Linesearch builder
+        let alpha = 1e-4;
+        let beta = 0.5; //0.5 is like backtracking line search
+                        // let ls = BackTracking::new(alpha, beta);
+        let ls = BackTracking::new(alpha, beta);
+
+        // pnorm descent builder
+        let tol = 1e-12;
+        let x_0 = DVector::from(vec![180.0, 152.0]);
+        let mut gd = BFGS::new(ls, tol, x_0);
+
+        // Minimization
+        let max_iter_solver = 1000;
+        let max_iter_line_search = 100000;
+
+        gd.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+            .unwrap();
+
+        println!("Iterate: {:?}", gd.xk());
+
+        let eval = f_and_g(gd.xk());
+        println!("Function eval: {:?}", eval);
+        println!("Gradient norm: {:?}", eval.g().norm());
+        println!("tol: {:?}", tol);
+
+        let convergence = gd.has_converged(&eval);
+        println!("Convergence: {:?}", convergence);
+
+        assert!((eval.f() - 0.0).abs() < 1e-6);
     }
 }
