@@ -72,7 +72,7 @@ impl LineSearch for BackTracking {
 
             // we check if we are out of domain
             if eval_kp1.f().is_nan() || eval_kp1.f().is_infinite() {
-                warn!(target: "backtracking line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
+                debug!(target: "backtracking line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
                 t *= self.beta;
                 continue;
             }
@@ -96,7 +96,7 @@ impl LineSearch for BackTracking {
             t *= self.beta;
             i += 1;
         }
-        warn!(target: "backtracking line search", "Max iter reached. Early stopping.");
+        debug!(target: "backtracking line search", "Max iter reached. Early stopping.");
         t
         // worst case scenario: t=0 (or t>0 but t<1 because of early stopping).
         // if t=0 we are not updating the iterate

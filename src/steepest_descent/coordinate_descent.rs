@@ -40,7 +40,7 @@ impl<LS> CoordinateDescent<LS> {
             direction_strategy: CoordinateDescentStrategy,
             lower_bound: None,
             upper_bound: None,
-            spg: None,
+            pg: None,
         }
     }
 }

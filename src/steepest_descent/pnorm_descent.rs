@@ -42,7 +42,7 @@ impl<LS> PnormDescent<LS> {
             direction_strategy: PnormDescentStrategy::new(inverse_p),
             lower_bound: None,
             upper_bound: None,
-            spg: None,
+            pg: None,
         }
     }
 }

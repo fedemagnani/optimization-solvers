@@ -93,7 +93,7 @@ pub trait Solver: ComputeDirection {
 
             *self.k_mut() += 1;
         }
-        warn!(target: "solver","Minimization completed: max iter reached during minimization");
+        debug!(target: "solver","Minimization completed: max iter reached during minimization");
         Err(SolverError::MaxIterReached)
     }
 }

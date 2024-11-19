@@ -22,7 +22,7 @@ impl<LS> GradientDescent<LS> {
             direction_strategy: GradientDescentStrategy,
             lower_bound: None,
             upper_bound: None,
-            spg: None,
+            pg: None,
         }
     }
 }

@@ -2,7 +2,14 @@
 
 Rust implementation of oracle-based algorithms for convex optimization problems. 
 
-Consider implementing solutions for [line search in constrained optimization](https://scicomp.stackexchange.com/questions/7938/line-search-for-constrained-optimization)
+# Todo
+- Consider implementing solutions for [line search in constrained optimization](https://scicomp.stackexchange.com/questions/7938/line-search-for-constrained-optimization)
+- Consider adding [preconditioning techniques]()
+
+## Links
+- ACM digital library: https://dl.acm.org/
+- ACM Collected Algorithms: https://calgo.acm.org/
+- IEEE Xplore: https://ieeexplore.ieee.org/Xplore/home.jsp
 
 ## Books and articles:
 - Misc. on numerical optimization: [Boyd, S., & Vandenberghe, L. (2004). Convex optimization. Cambridge university press.](https://web.stanford.edu/~boyd/cvxbook/) (Chapter 9)
@@ -12,3 +19,4 @@ Consider implementing solutions for [line search in constrained optimization](ht
 - Moré-Thuente line search algorithm: [Jorge J. Moré and David J. Thuente. 1994. Line search algorithms with guaranteed sufficient decrease. ACM Trans. Math. Softw. 20, 3 (Sept. 1994), 286–307.](https://www.ii.uib.no/~lennart/drgrad/More1994.pdf)
 - Survey of existing solvers for bound-constrained optimization: [Tröltzsch, A. (2007). Benchmarking of bound-constrained optimization software](https://www.cerfacs.fr/algor/reports/2007/WN_PA_07_143.pdf) 
 - Survey of existing solvers for bound-constrained optimization: [Birgin, E.G., Gentil, J.M. Evaluating bound-constrained minimization software. Comput Optim Appl 53, 347–373 (2012)](https://www.ime.usp.br/%7Eegbirgin/publications/bg-bdseval.pdf)
+- Spectral Projected Gradient Method (ACM Algo 813): [Birgin, Ernesto & Martínez, José Mario & Raydan, Marcos. (2014). Spectral Projected Gradient Methods: Review and Perspectives. Journal of Statistical Software. 60. 1-21. 10.18637/jss.v060.i03.](https://www.ime.usp.br/~egbirgin/publications/bmr5.pdf)
