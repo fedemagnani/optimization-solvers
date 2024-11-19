@@ -3,6 +3,8 @@ pub mod backtracking;
 pub use backtracking::*;
 pub mod morethuente;
 pub use morethuente::*;
+pub mod backtracking_b;
+pub use backtracking_b::*;
 pub trait LineSearch {
     fn compute_step_len(
         &self,
@@ -15,7 +17,7 @@ pub trait LineSearch {
 
 pub trait SufficientDecreaseCondition {
     fn c1(&self) -> Floating; // Armijo senstivity
-    fn sufficient_decrease_with_directional_derivative(
+    fn sufficient_decrease(
         &self,
         f_k: &Floating,
         f_kp1: &Floating,
@@ -23,17 +25,6 @@ pub trait SufficientDecreaseCondition {
         direction_k: &DVector<Floating>,
     ) -> bool {
         f_kp1 - f_k <= self.c1() * grad_k.dot(direction_k)
-    }
-    fn sufficient_decrease_with_norm_of_diff(
-        &self,
-        f_k: &Floating,
-        f_kp1: &Floating,
-        x_k: &DVector<Floating>,
-        x_kp1: &DVector<Floating>,
-        step_len: &Floating,
-    ) -> bool {
-        let diff = x_kp1 - x_k;
-        f_kp1 - f_k <= -self.c1() / step_len * diff.dot(&diff)
     }
 }
 
@@ -66,7 +57,7 @@ pub trait WolfeConditions: SufficientDecreaseCondition + CurvatureCondition {
         grad_kp1: &DVector<Floating>,
         direction_k: &DVector<Floating>,
     ) -> bool {
-        self.sufficient_decrease_with_directional_derivative(f_k, f_kp1, grad_k, direction_k)
+        self.sufficient_decrease(f_k, f_kp1, grad_k, direction_k)
             && self.curvature_condition(grad_k, grad_kp1, direction_k)
     }
     fn strong_wolfe_conditions_with_directional_derivative(
@@ -77,7 +68,7 @@ pub trait WolfeConditions: SufficientDecreaseCondition + CurvatureCondition {
         grad_kp1: &DVector<Floating>,
         direction_k: &DVector<Floating>,
     ) -> bool {
-        self.sufficient_decrease_with_directional_derivative(f_k, f_kp1, grad_k, direction_k)
+        self.sufficient_decrease(f_k, f_kp1, grad_k, direction_k)
             && self.strong_curvature_condition(grad_k, grad_kp1, direction_k)
     }
 }

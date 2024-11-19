@@ -1,11 +1,31 @@
-use tracing::info;
+use super::*;
 
 use super::*;
 
-#[derive(Default)]
-pub struct CoordinateDescentStrategy;
+// All the algorithms in the family of steepest descent differ only in the way they compute the descent direction (i.e. they differ in the norm used so that the associated unit ball is the constraint set on which search the direction that minimizes the directional derivative at the current iterate. Typically this minimizer is a unit vector but any scaled version of the vector is good (the line search will adjust the direction later), so it's good supplying the rescaled version of the minimizer which has minimal computational cost).
 
-impl ComputeDirection for CoordinateDescentStrategy {
+// the family of steepest descent algorithms has (at most) linear convergence rate, and it's possible to see it by computing the trajectory of the upper bound of the log-suboptimality error ln(f(x_k)-p^*) where p^* is the optimal value of the problem. In particular, the convergence drops significantly if the upper bound of the condition number of the hessian matrix of the function is high (you can see it by solving the log-suboptimality error trajectory for the iteration number k). Recall that an upper bound on the condition number of the hessian can be derived by taking the ratio between the maximal and the minimal eigenvalue of the hessian matrix. This condition number can be also thought as the volume of the ellipsoid {x: x^T H x <= 1} where H is the hessian matrix of the function, which is always relatable to the volume of the euclidean unit ball gamma*sqrt{det (H^TH)} where gamma is the volume of the euclidean unit ball.
+
+#[derive(derive_getters::Getters)]
+pub struct CoordinateDescent<LS> {
+    pub line_search: LS,
+    pub grad_tol: Floating,
+    pub x: DVector<Floating>,
+    pub k: usize,
+}
+
+impl<LS> CoordinateDescent<LS> {
+    pub fn new(line_search: LS, grad_tol: Floating, x0: DVector<Floating>) -> Self {
+        Self {
+            line_search,
+            grad_tol,
+            x: x0,
+            k: 0,
+        }
+    }
+}
+
+impl<LS> ComputeDirection for CoordinateDescent<LS> {
     fn compute_direction(
         &mut self,
         eval: &FuncEvalMultivariate,
@@ -28,20 +48,57 @@ impl ComputeDirection for CoordinateDescentStrategy {
         Ok(direction_k)
     }
 }
-pub type CoordinateDescent<LS> = SteepestDescent<LS, CoordinateDescentStrategy>;
 
-impl<LS> CoordinateDescent<LS> {
-    pub fn new(line_search: LS, grad_tol: Floating, x0: DVector<Floating>) -> Self {
-        Self {
-            line_search,
-            grad_tol,
-            x: x0,
-            k: 0,
-            direction_strategy: CoordinateDescentStrategy,
-            lower_bound: None,
-            upper_bound: None,
-            pg: None,
-        }
+impl<LS> OptimizationSolver for CoordinateDescent<LS>
+where
+    LS: LineSearch,
+{
+    type LS = LS;
+    fn line_search(&self) -> &Self::LS {
+        &self.line_search
+    }
+    fn line_search_mut(&mut self) -> &mut Self::LS {
+        &mut self.line_search
+    }
+    fn xk(&self) -> &DVector<Floating> {
+        &self.x
+    }
+    fn xk_mut(&mut self) -> &mut DVector<Floating> {
+        &mut self.x
+    }
+    fn k(&self) -> &usize {
+        &self.k
+    }
+    fn k_mut(&mut self) -> &mut usize {
+        &mut self.k
+    }
+    fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool {
+        // we verify that the norm of the gradient is below the tolerance.
+        let grad = eval.g();
+        // we compute the infinity norm of the gradient
+        grad.iter()
+            .fold(Floating::NEG_INFINITY, |acc, x| x.abs().max(acc))
+            < self.grad_tol
+    }
+
+    fn update_next_iterate(
+        &mut self,
+        _: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
+        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        direction: &DVector<Floating>,
+        max_iter_line_search: usize,
+    ) -> Result<(), SolverError> {
+        let step =
+            self.line_search()
+                .compute_step_len(self.xk(), direction, oracle, max_iter_line_search);
+
+        debug!(target: "coordinate_descent", "ITERATE: {} + {} * {} = {}", self.xk(), step, direction, self.xk() + step * direction);
+
+        let next_iterate = self.xk() + step * direction;
+
+        *self.xk_mut() = next_iterate;
+
+        Ok(())
     }
 }
 

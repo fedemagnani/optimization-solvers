@@ -46,7 +46,7 @@ impl<T> ComputeDirection for Newton<T> {
     }
 }
 
-impl<T> Solver for Newton<T>
+impl<T> OptimizationSolver for Newton<T>
 where
     T: LineSearch,
 {

@@ -18,7 +18,7 @@ pub enum SolverError {
 }
 
 //Template pattern for solvers. Methods that are already implemented can be freely overriden.
-pub trait Solver: ComputeDirection {
+pub trait OptimizationSolver: ComputeDirection {
     type LS: LineSearch;
     fn line_search(&self) -> &Self::LS;
     fn line_search_mut(&mut self) -> &mut Self::LS;
@@ -93,7 +93,14 @@ pub trait Solver: ComputeDirection {
 
             *self.k_mut() += 1;
         }
-        debug!(target: "solver","Minimization completed: max iter reached during minimization");
+        warn!(target: "solver","Minimization completed: max iter reached during minimization");
         Err(SolverError::MaxIterReached)
     }
+}
+
+pub trait HasBounds {
+    fn lower_bound(&self) -> &DVector<Floating>;
+    fn upper_bound(&self) -> &DVector<Floating>;
+    fn set_lower_bound(&mut self, lower_bound: DVector<Floating>);
+    fn set_upper_bound(&mut self, upper_bound: DVector<Floating>);
 }

@@ -50,7 +50,7 @@ impl<T> ComputeDirection for BFGS<T> {
     }
 }
 
-impl<T> Solver for BFGS<T>
+impl<T> OptimizationSolver for BFGS<T>
 where
     T: LineSearch,
 {

@@ -1,31 +1,21 @@
 use super::*;
+
+// All the algorithms in the family of steepest descent differ only in the way they compute the descent direction (i.e. they differ in the norm used so that the associated unit ball is the constraint set on which search the direction that minimizes the directional derivative at the current iterate. Typically this minimizer is a unit vector but any scaled version of the vector is good (the line search will adjust the direction later), so it's good supplying the rescaled version of the minimizer which has minimal computational cost).
+
+// the family of steepest descent algorithms has (at most) linear convergence rate, and it's possible to see it by computing the trajectory of the upper bound of the log-suboptimality error ln(f(x_k)-p^*) where p^* is the optimal value of the problem. In particular, the convergence drops significantly if the upper bound of the condition number of the hessian matrix of the function is high (you can see it by solving the log-suboptimality error trajectory for the iteration number k). Recall that an upper bound on the condition number of the hessian can be derived by taking the ratio between the maximal and the minimal eigenvalue of the hessian matrix. This condition number can be also thought as the volume of the ellipsoid {x: x^T H x <= 1} where H is the hessian matrix of the function, which is always relatable to the volume of the euclidean unit ball gamma*sqrt{det (H^TH)} where gamma is the volume of the euclidean unit ball.The p-norm descent tries to tackle this issue by taking a Matrix P that proxies correctly the hessian matrix (i.e. its unit norm {x: x^T P x <= 1} is a good approximation of the sublevel sets of the function), and this adjustments decreases the condition number of P^{-0.5} H P^{-0.5} because it would resemble (more or less) the identity matrix. It's from this intuition that the newton and quasi-newton methods become more clear.
+
 // Notice that the the pnorm descent is equivalent to the steepest descent with P= identity matrix
 // This approach finds the direction of the steepest descent by minimizing the directional derivative (at current iterate) over the ellipsoid {d: d^T P d <= 1} (which could be thought as the unit ball of the P-norm ||P^(-1/2) d||_2)
 // The best thing would be picking a matrix P (and then compute its inverse) such that the P is a good approximation of the hessian of the function. By doing this, the condition number of the hessian is in control and the convergence rate of the algorithm is improved. It's from this rationale that newton and quasi-newton methods are born.
 
-#[derive(Default)]
-pub struct PnormDescentStrategy {
-    inverse_p: DMatrix<Floating>,
+#[derive(derive_getters::Getters)]
+pub struct PnormDescent<LS> {
+    pub line_search: LS,
+    pub grad_tol: Floating,
+    pub x: DVector<Floating>,
+    pub k: usize,
+    pub inverse_p: DMatrix<Floating>,
 }
-impl PnormDescentStrategy {
-    pub fn new(inverse_p: DMatrix<Floating>) -> Self {
-        PnormDescentStrategy { inverse_p }
-    }
-}
-
-impl ComputeDirection for PnormDescentStrategy {
-    fn compute_direction(
-        &mut self,
-        eval: &FuncEvalMultivariate,
-    ) -> Result<DVector<Floating>, SolverError> {
-        // let grad_k = eval.g();
-        // self.inverse_p.mul_to(grad_k, &mut self.direction);
-        // self.direction.neg_mut();
-        // self.direction.clone()
-        Ok(-&self.inverse_p * eval.g())
-    }
-}
-pub type PnormDescent<LS> = SteepestDescent<LS, PnormDescentStrategy>;
 
 impl<LS> PnormDescent<LS> {
     pub fn new(
@@ -39,11 +29,70 @@ impl<LS> PnormDescent<LS> {
             grad_tol,
             x: x0,
             k: 0,
-            direction_strategy: PnormDescentStrategy::new(inverse_p),
-            lower_bound: None,
-            upper_bound: None,
-            pg: None,
+            inverse_p,
         }
+    }
+}
+
+impl<LS> ComputeDirection for PnormDescent<LS> {
+    fn compute_direction(
+        &mut self,
+        eval: &FuncEvalMultivariate,
+    ) -> Result<DVector<Floating>, SolverError> {
+        Ok(-&self.inverse_p * eval.g())
+    }
+}
+
+impl<LS> OptimizationSolver for PnormDescent<LS>
+where
+    LS: LineSearch,
+{
+    type LS = LS;
+    fn line_search(&self) -> &Self::LS {
+        &self.line_search
+    }
+    fn line_search_mut(&mut self) -> &mut Self::LS {
+        &mut self.line_search
+    }
+    fn xk(&self) -> &DVector<Floating> {
+        &self.x
+    }
+    fn xk_mut(&mut self) -> &mut DVector<Floating> {
+        &mut self.x
+    }
+    fn k(&self) -> &usize {
+        &self.k
+    }
+    fn k_mut(&mut self) -> &mut usize {
+        &mut self.k
+    }
+    fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool {
+        // we verify that the norm of the gradient is below the tolerance.
+        let grad = eval.g();
+        // we compute the infinity norm of the gradient
+        grad.iter()
+            .fold(Floating::NEG_INFINITY, |acc, x| x.abs().max(acc))
+            < self.grad_tol
+    }
+
+    fn update_next_iterate(
+        &mut self,
+        _: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
+        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        direction: &DVector<Floating>,
+        max_iter_line_search: usize,
+    ) -> Result<(), SolverError> {
+        let step =
+            self.line_search()
+                .compute_step_len(self.xk(), direction, oracle, max_iter_line_search);
+
+        debug!(target: "pnorm_descent", "ITERATE: {} + {} * {} = {}", self.xk(), step, direction, self.xk() + step * direction);
+
+        let next_iterate = self.xk() + step * direction;
+
+        *self.xk_mut() = next_iterate;
+
+        Ok(())
     }
 }
 

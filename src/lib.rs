@@ -25,8 +25,8 @@ use tracing_subscriber::{
 pub mod tracer;
 pub use tracer::*;
 
-pub mod solver;
-pub use solver::*;
+pub mod optimization_solver;
+pub use optimization_solver::*;
 
 pub mod func_eval;
 pub use func_eval::*;
@@ -42,8 +42,26 @@ pub mod quasi_newton {
     pub mod bfgs;
     pub use bfgs::*;
 }
+pub use quasi_newton::*;
 
-pub mod steepest_descent;
+pub mod steepest_descent {
+    use super::*;
+    pub mod gradient_descent;
+    pub use gradient_descent::*;
+
+    pub mod coordinate_descent;
+    pub use coordinate_descent::*;
+
+    pub mod pnorm_descent;
+    pub use pnorm_descent::*;
+
+    pub mod spg;
+    pub use spg::*;
+
+    pub mod projected_gradient_descent;
+    pub use projected_gradient_descent::*;
+}
+
 pub use steepest_descent::*;
 
 pub mod newton;
