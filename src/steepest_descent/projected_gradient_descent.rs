@@ -130,7 +130,7 @@ mod projected_gradient_test {
             (f, g).into()
         };
 
-        //bounds
+        //bounds p
         let lower_bounds = DVector::from_vec(vec![-f64::INFINITY, -f64::INFINITY]);
         let upper_oounds = DVector::from_vec(vec![f64::INFINITY, f64::INFINITY]);
         // Linesearch builder
