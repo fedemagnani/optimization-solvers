@@ -51,15 +51,15 @@ impl HasBounds for BackTrackingB {
 
 impl LineSearch for BackTrackingB {
     fn compute_step_len(
-        &self,
+        &mut self,
         x_k: &DVector<Floating>,
+        eval_x_k: &FuncEvalMultivariate,
         direction_k: &DVector<Floating>,
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter: usize,
     ) -> Floating {
         let mut t = 1.0;
         let mut i = 0;
-        let eval = oracle(x_k);
 
         while max_iter > i {
             let x_kp1 = x_k + t * direction_k;
@@ -72,7 +72,7 @@ impl LineSearch for BackTrackingB {
                 t *= self.beta;
                 continue;
             }
-            if self.sufficient_decrease_with_bounds(x_k, &x_kp1, eval.f(), eval_kp1.f(), &t) {
+            if self.sufficient_decrease_with_bounds(x_k, &x_kp1, eval_x_k.f(), eval_kp1.f(), &t) {
                 debug!(target: "backtracking_b line search", "Modified Armijo rule met. Exiting with step size: {:?} at iteration {:?}", t, i);
                 return t;
             }

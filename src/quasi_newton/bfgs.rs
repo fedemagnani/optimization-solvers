@@ -1,8 +1,7 @@
 use super::*;
 
 #[derive(derive_getters::Getters)]
-pub struct BFGS<T> {
-    line_search: T,
+pub struct BFGS {
     approx_inv_hessian: DMatrix<Floating>,
     x: DVector<Floating>,
     k: usize,
@@ -12,7 +11,7 @@ pub struct BFGS<T> {
     identity: DMatrix<Floating>,
 }
 
-impl<T> BFGS<T> {
+impl BFGS {
     pub fn next_iterate_too_close(&self) -> bool {
         match self.s_norm() {
             Some(s) => s < &self.tol,
@@ -25,11 +24,10 @@ impl<T> BFGS<T> {
             None => false,
         }
     }
-    pub fn new(line_search: T, tol: Floating, x0: DVector<Floating>) -> Self {
+    pub fn new(tol: Floating, x0: DVector<Floating>) -> Self {
         let n = x0.len();
         let identity = DMatrix::identity(n, n);
         BFGS {
-            line_search,
             approx_inv_hessian: identity.clone(),
             x: x0,
             k: 0,
@@ -41,7 +39,7 @@ impl<T> BFGS<T> {
     }
 }
 
-impl<T> ComputeDirection for BFGS<T> {
+impl ComputeDirection for BFGS {
     fn compute_direction(
         &mut self,
         eval: &FuncEvalMultivariate,
@@ -50,11 +48,7 @@ impl<T> ComputeDirection for BFGS<T> {
     }
 }
 
-impl<T> OptimizationSolver for BFGS<T>
-where
-    T: LineSearch,
-{
-    type LS = T;
+impl OptimizationSolver for BFGS {
     fn k(&self) -> &usize {
         &self.k
     }
@@ -66,12 +60,6 @@ where
     }
     fn k_mut(&mut self) -> &mut usize {
         &mut self.k
-    }
-    fn line_search(&self) -> &Self::LS {
-        &self.line_search
-    }
-    fn line_search_mut(&mut self) -> &mut Self::LS {
-        &mut self.line_search
     }
     fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool {
         // either the gradient is small or the difference between the iterates is small
@@ -87,15 +75,17 @@ where
         }
     }
 
-    fn update_next_iterate(
+    fn update_next_iterate<LS: LineSearch>(
         &mut self,
-        eval: &FuncEvalMultivariate,
+        line_search: &mut LS,
+        eval_x_k: &FuncEvalMultivariate,
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
-        let step = self.line_search().compute_step_len(
+        let step = line_search.compute_step_len(
             self.xk(),
+            eval_x_k,
             &direction,
             &oracle,
             max_iter_line_search,
@@ -105,7 +95,7 @@ where
 
         let s = &next_iterate - &self.x;
         self.s_norm = Some(s.norm());
-        let y = oracle(&next_iterate).g() - eval.g();
+        let y = oracle(&next_iterate).g() - eval_x_k.g();
         self.y_norm = Some(y.norm());
 
         //updating iterate here, and then we will update the inverse hessian (if corrections are not too small)
@@ -161,18 +151,18 @@ mod test_bfgs {
 
         // Linesearch builder
 
-        let ls = MoreThuente::default();
+        let mut ls = MoreThuente::default();
 
         // pnorm descent builder
         let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut gd = BFGS::new(ls, tol, x_0);
+        let mut gd = BFGS::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100000;
 
-        gd.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", gd.xk());
@@ -206,18 +196,18 @@ mod test_bfgs {
         let alpha = 1e-4;
         let beta = 0.5; //0.5 is like backtracking line search
                         // let ls = BackTracking::new(alpha, beta);
-        let ls = BackTracking::new(alpha, beta);
+        let mut ls = BackTracking::new(alpha, beta);
 
         // pnorm descent builder
         let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut gd = BFGS::new(ls, tol, x_0);
+        let mut gd = BFGS::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100000;
 
-        gd.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", gd.xk());

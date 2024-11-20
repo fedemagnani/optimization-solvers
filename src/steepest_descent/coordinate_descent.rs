@@ -7,17 +7,15 @@ use super::*;
 // the family of steepest descent algorithms has (at most) linear convergence rate, and it's possible to see it by computing the trajectory of the upper bound of the log-suboptimality error ln(f(x_k)-p^*) where p^* is the optimal value of the problem. In particular, the convergence drops significantly if the upper bound of the condition number of the hessian matrix of the function is high (you can see it by solving the log-suboptimality error trajectory for the iteration number k). Recall that an upper bound on the condition number of the hessian can be derived by taking the ratio between the maximal and the minimal eigenvalue of the hessian matrix. This condition number can be also thought as the volume of the ellipsoid {x: x^T H x <= 1} where H is the hessian matrix of the function, which is always relatable to the volume of the euclidean unit ball gamma*sqrt{det (H^TH)} where gamma is the volume of the euclidean unit ball.
 
 #[derive(derive_getters::Getters)]
-pub struct CoordinateDescent<LS> {
-    pub line_search: LS,
+pub struct CoordinateDescent {
     pub grad_tol: Floating,
     pub x: DVector<Floating>,
     pub k: usize,
 }
 
-impl<LS> CoordinateDescent<LS> {
-    pub fn new(line_search: LS, grad_tol: Floating, x0: DVector<Floating>) -> Self {
+impl CoordinateDescent {
+    pub fn new(grad_tol: Floating, x0: DVector<Floating>) -> Self {
         Self {
-            line_search,
             grad_tol,
             x: x0,
             k: 0,
@@ -25,7 +23,7 @@ impl<LS> CoordinateDescent<LS> {
     }
 }
 
-impl<LS> ComputeDirection for CoordinateDescent<LS> {
+impl ComputeDirection for CoordinateDescent {
     fn compute_direction(
         &mut self,
         eval: &FuncEvalMultivariate,
@@ -49,17 +47,7 @@ impl<LS> ComputeDirection for CoordinateDescent<LS> {
     }
 }
 
-impl<LS> OptimizationSolver for CoordinateDescent<LS>
-where
-    LS: LineSearch,
-{
-    type LS = LS;
-    fn line_search(&self) -> &Self::LS {
-        &self.line_search
-    }
-    fn line_search_mut(&mut self) -> &mut Self::LS {
-        &mut self.line_search
-    }
+impl OptimizationSolver for CoordinateDescent {
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }
@@ -81,16 +69,21 @@ where
             < self.grad_tol
     }
 
-    fn update_next_iterate(
+    fn update_next_iterate<LS: LineSearch>(
         &mut self,
-        _: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
+        line_search: &mut LS,
+        eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
-        let step =
-            self.line_search()
-                .compute_step_len(self.xk(), direction, oracle, max_iter_line_search);
+        let step = line_search.compute_step_len(
+            self.xk(),
+            eval_x_k,
+            direction,
+            oracle,
+            max_iter_line_search,
+        );
 
         debug!(target: "coordinate_descent", "ITERATE: {} + {} * {} = {}", self.xk(), step, direction, self.xk() + step * direction);
 
@@ -121,19 +114,19 @@ mod steepest_descent_l1_test {
         };
         // Linesearch builder
 
-        let ls = MoreThuente::default();
+        let mut ls = MoreThuente::default();
 
         // Gradient descent builder
         let tol = 1e-12;
 
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut sdl1 = CoordinateDescent::new(ls, tol, x_0);
+        let mut sdl1 = CoordinateDescent::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        sdl1.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+        sdl1.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", sdl1.xk());
@@ -165,19 +158,19 @@ mod steepest_descent_l1_test {
         // Linesearch builder
         let alpha = 1e-4;
         let beta = 0.5;
-        let ls = BackTracking::new(alpha, beta);
+        let mut ls = BackTracking::new(alpha, beta);
 
         // Gradient descent builder
         let tol = 1e-12;
 
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut sdl1 = CoordinateDescent::new(ls, tol, x_0);
+        let mut sdl1 = CoordinateDescent::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        sdl1.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+        sdl1.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", sdl1.xk());

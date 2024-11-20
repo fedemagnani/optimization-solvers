@@ -1,18 +1,16 @@
 use super::*;
 
 #[derive(derive_getters::Getters)]
-pub struct Newton<T> {
-    line_search: T,
+pub struct Newton {
     tol: Floating,
     decrement_squared: Option<Floating>,
     x: DVector<Floating>,
     k: usize,
 }
 
-impl<T> Newton<T> {
-    pub fn new(line_search: T, tol: Floating, x0: DVector<Floating>) -> Self {
+impl Newton {
+    pub fn new(tol: Floating, x0: DVector<Floating>) -> Self {
         Newton {
-            line_search,
             tol,
             decrement_squared: None,
             x: x0,
@@ -21,7 +19,7 @@ impl<T> Newton<T> {
     }
 }
 
-impl<T> ComputeDirection for Newton<T> {
+impl ComputeDirection for Newton {
     fn compute_direction(
         &mut self,
         eval: &FuncEvalMultivariate,
@@ -46,22 +44,12 @@ impl<T> ComputeDirection for Newton<T> {
     }
 }
 
-impl<T> OptimizationSolver for Newton<T>
-where
-    T: LineSearch,
-{
-    type LS = T;
+impl OptimizationSolver for Newton {
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }
     fn k(&self) -> &usize {
         &self.k
-    }
-    fn line_search(&self) -> &Self::LS {
-        &self.line_search
-    }
-    fn line_search_mut(&mut self) -> &mut Self::LS {
-        &mut self.line_search
     }
     fn xk_mut(&mut self) -> &mut DVector<Floating> {
         &mut self.x
@@ -98,18 +86,18 @@ mod newton_test {
 
         // Linesearch builder
 
-        let ls = MoreThuente::default();
+        let mut ls = MoreThuente::default();
 
         // newton builder
         let tol = 1e-8;
         let x_0 = DVector::from(vec![1.0, 1.0]);
-        let mut nt = Newton::new(ls, tol, x_0);
+        let mut nt = Newton::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        nt.minimize(oracle, max_iter_solver, max_iter_line_search)
+        nt.minimize(&mut ls, oracle, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", nt.xk());
@@ -143,18 +131,18 @@ mod newton_test {
         // Linesearch builder
         let alpha = 1e-4;
         let beta = 0.5;
-        let ls = BackTracking::new(alpha, beta);
+        let mut ls = BackTracking::new(alpha, beta);
 
         // newton builder
         let tol = 1e-8;
         let x_0 = DVector::from(vec![1.0, 1.0]);
-        let mut nt = Newton::new(ls, tol, x_0);
+        let mut nt = Newton::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        nt.minimize(oracle, max_iter_solver, max_iter_line_search)
+        nt.minimize(&mut ls, oracle, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", nt.xk());

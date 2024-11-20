@@ -5,10 +5,14 @@ pub mod morethuente;
 pub use morethuente::*;
 pub mod backtracking_b;
 pub use backtracking_b::*;
+pub mod gll_quadratic;
+pub use gll_quadratic::*;
+
 pub trait LineSearch {
     fn compute_step_len(
-        &self,
+        &mut self,
         x_k: &DVector<Floating>,         // current iterate
+        eval_x_k: &FuncEvalMultivariate, // function evaluation at x_k
         direction_k: &DVector<Floating>, // direction of the ray along which we are going to search
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate, // oracle
         max_iter: usize, // maximum number of iterations during line search (if direction update is costly, set this high to perform more exact line search)
@@ -22,9 +26,10 @@ pub trait SufficientDecreaseCondition {
         f_k: &Floating,
         f_kp1: &Floating,
         grad_k: &DVector<Floating>,
+        t: &Floating, // step size
         direction_k: &DVector<Floating>,
     ) -> bool {
-        f_kp1 - f_k <= self.c1() * grad_k.dot(direction_k)
+        f_kp1 - f_k <= self.c1() * t * grad_k.dot(direction_k)
     }
 }
 
@@ -55,9 +60,10 @@ pub trait WolfeConditions: SufficientDecreaseCondition + CurvatureCondition {
         f_kp1: &Floating,
         grad_k: &DVector<Floating>,
         grad_kp1: &DVector<Floating>,
+        t: &Floating, // step size
         direction_k: &DVector<Floating>,
     ) -> bool {
-        self.sufficient_decrease(f_k, f_kp1, grad_k, direction_k)
+        self.sufficient_decrease(f_k, f_kp1, grad_k, t, direction_k)
             && self.curvature_condition(grad_k, grad_kp1, direction_k)
     }
     fn strong_wolfe_conditions_with_directional_derivative(
@@ -66,9 +72,10 @@ pub trait WolfeConditions: SufficientDecreaseCondition + CurvatureCondition {
         f_kp1: &Floating,
         grad_k: &DVector<Floating>,
         grad_kp1: &DVector<Floating>,
+        t: &Floating, // step size
         direction_k: &DVector<Floating>,
     ) -> bool {
-        self.sufficient_decrease(f_k, f_kp1, grad_k, direction_k)
+        self.sufficient_decrease(f_k, f_kp1, grad_k, t, direction_k)
             && self.strong_curvature_condition(grad_k, grad_kp1, direction_k)
     }
 }

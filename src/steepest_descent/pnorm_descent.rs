@@ -9,23 +9,16 @@ use super::*;
 // The best thing would be picking a matrix P (and then compute its inverse) such that the P is a good approximation of the hessian of the function. By doing this, the condition number of the hessian is in control and the convergence rate of the algorithm is improved. It's from this rationale that newton and quasi-newton methods are born.
 
 #[derive(derive_getters::Getters)]
-pub struct PnormDescent<LS> {
-    pub line_search: LS,
+pub struct PnormDescent {
     pub grad_tol: Floating,
     pub x: DVector<Floating>,
     pub k: usize,
     pub inverse_p: DMatrix<Floating>,
 }
 
-impl<LS> PnormDescent<LS> {
-    pub fn new(
-        line_search: LS,
-        grad_tol: Floating,
-        x0: DVector<Floating>,
-        inverse_p: DMatrix<Floating>,
-    ) -> Self {
+impl PnormDescent {
+    pub fn new(grad_tol: Floating, x0: DVector<Floating>, inverse_p: DMatrix<Floating>) -> Self {
         PnormDescent {
-            line_search,
             grad_tol,
             x: x0,
             k: 0,
@@ -34,7 +27,7 @@ impl<LS> PnormDescent<LS> {
     }
 }
 
-impl<LS> ComputeDirection for PnormDescent<LS> {
+impl ComputeDirection for PnormDescent {
     fn compute_direction(
         &mut self,
         eval: &FuncEvalMultivariate,
@@ -43,17 +36,7 @@ impl<LS> ComputeDirection for PnormDescent<LS> {
     }
 }
 
-impl<LS> OptimizationSolver for PnormDescent<LS>
-where
-    LS: LineSearch,
-{
-    type LS = LS;
-    fn line_search(&self) -> &Self::LS {
-        &self.line_search
-    }
-    fn line_search_mut(&mut self) -> &mut Self::LS {
-        &mut self.line_search
-    }
+impl OptimizationSolver for PnormDescent {
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }
@@ -75,16 +58,21 @@ where
             < self.grad_tol
     }
 
-    fn update_next_iterate(
+    fn update_next_iterate<LS: LineSearch>(
         &mut self,
-        _: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
+        line_search: &mut LS,
+        eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
-        let step =
-            self.line_search()
-                .compute_step_len(self.xk(), direction, oracle, max_iter_line_search);
+        let step = line_search.compute_step_len(
+            self.xk(),
+            eval_x_k,
+            direction,
+            oracle,
+            max_iter_line_search,
+        );
 
         debug!(target: "pnorm_descent", "ITERATE: {} + {} * {} = {}", self.xk(), step, direction, self.xk() + step * direction);
 
@@ -118,18 +106,18 @@ mod gpnorm_descent_test {
         // let inv_hessian = DMatrix::identity(2, 2);
 
         // Linesearch builder
-        let ls = MoreThuente::default();
+        let mut ls = MoreThuente::default();
 
         // pnorm descent builder
         let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut gd = PnormDescent::new(ls, tol, x_0, inv_hessian);
+        let mut gd = PnormDescent::new(tol, x_0, inv_hessian);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        gd.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", gd.xk());
@@ -165,18 +153,18 @@ mod gpnorm_descent_test {
         // Linesearch builder
         let alpha = 1e-4;
         let beta = 0.5;
-        let ls = BackTracking::new(alpha, beta);
+        let mut ls = BackTracking::new(alpha, beta);
 
         // pnorm descent builder
         let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut gd = PnormDescent::new(ls, tol, x_0, inv_hessian);
+        let mut gd = PnormDescent::new(tol, x_0, inv_hessian);
 
         // Minimization
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        gd.minimize(f_and_g, max_iter_solver, max_iter_line_search)
+        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
             .unwrap();
 
         println!("Iterate: {:?}", gd.xk());

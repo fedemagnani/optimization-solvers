@@ -163,8 +163,9 @@ impl CurvatureCondition for MoreThuente {
 
 impl LineSearch for MoreThuente {
     fn compute_step_len(
-        &self,
+        &mut self,
         x_k: &DVector<Floating>,         // current iterate
+        eval_x_k: &FuncEvalMultivariate, // function evaluation at x_k
         direction_k: &DVector<Floating>, // direction of the ray along which we are going to search
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate, // oracle
         max_iter: usize, // maximum number of iterations during line search (if direction update is costly, set this high to perform more exact line search)
@@ -175,9 +176,9 @@ impl LineSearch for MoreThuente {
         let mut t = 1.0f64.max(self.t_min).min(self.t_max);
         let mut tl = self.t_min;
         let mut tu = self.t_max;
+        let eval_0 = eval_x_k;
 
         for i in 0..max_iter {
-            let eval_0 = oracle(x_k);
             let eval_t = oracle(&(x_k + t * direction_k));
             // Check for convergence
             if self.strong_wolfe_conditions_with_directional_derivative(
@@ -185,18 +186,19 @@ impl LineSearch for MoreThuente {
                 eval_t.f(),
                 eval_0.g(),
                 eval_t.g(),
+                &t,
                 direction_k,
             ) {
-                info!("Strong Wolfe conditions satisfied at iteration {}", i);
+                debug!("Strong Wolfe conditions satisfied at iteration {}", i);
                 return t;
             } else if interval_converged {
-                info!("Interval converged at iteration {}", i);
+                debug!("Interval converged at iteration {}", i);
                 return t;
             } else if t == self.t_min {
-                info!("t is at the minimum value at iteration {}", i);
+                debug!("t is at the minimum value at iteration {}", i);
                 return t;
             } else if t == self.t_max {
-                info!("t is at the maximum value at iteration {}", i);
+                debug!("t is at the maximum value at iteration {}", i);
                 return t;
             }
 
@@ -290,7 +292,7 @@ mod morethuente_test {
     use super::*;
     #[test]
     pub fn test_phi() {
-        std::env::set_var("RUST_LOG", "info");
+        std::env::set_var("RUST_LOG", "debug");
 
         // in this example the objecive function has constant hessian, thus its condition number doesn't change on different points.
         // Recall that in gradient descent method, the upper bound of the log error is positive function of the upper bound of condition number of the hessian (ratio between max and min eigenvalue).
@@ -308,7 +310,7 @@ mod morethuente_test {
         //here we define a rough gradient descent method that uses ls line search
         let mut k = 1;
         let mut iterate = DVector::from(vec![180.0, 152.0]);
-        let ls = MoreThuente::default();
+        let mut ls = MoreThuente::default();
         // let ls = BackTracking::new(1e-4, 0.5);
         let gradient_tol = 1e-12;
 
@@ -322,7 +324,7 @@ mod morethuente_test {
             }
             let direction = -eval.g();
             let t = <MoreThuente as LineSearch>::compute_step_len(
-                &ls, &iterate, &direction, &f_and_g, max_iter,
+                &mut ls, &iterate, &eval, &direction, &f_and_g, max_iter,
             );
             //we perform the update
             iterate += t * direction;
@@ -331,6 +333,6 @@ mod morethuente_test {
         println!("Iterate: {:?}", iterate);
         println!("Function eval: {:?}", f_and_g(&iterate));
         assert!((iterate[0] - 0.0).abs() < 1e-6);
-        info!("Test took {} iterations", k);
+        debug!("Test took {} iterations", k);
     }
 }

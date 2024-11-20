@@ -12,6 +12,7 @@ Rust implementation of oracle-based algorithms for convex optimization problems.
 - IEEE Xplore: https://ieeexplore.ieee.org/Xplore/home.jsp
 
 ## Books and articles:
+- GLL non-monotone line search algorithm: [L. Grippo, F. Lampariello and S. Lucidi, “A Nonmonotone Line Search Technique for Newton’s Methods,” SIAM Journal on Numerical Analysis, Vol. 23, No. 4, 1986, pp. 707-716.](https://epubs.siam.org/doi/10.1137/0723046)
 - Misc. on numerical optimization: [Boyd, S., & Vandenberghe, L. (2004). Convex optimization. Cambridge university press.](https://web.stanford.edu/~boyd/cvxbook/) (Chapter 9)
 - Misc. on numerical optimization: [Nocedal, J., & Wright, S. J. (2006). Numerical optimization. Springer Science & Business Media.](https://www.math.uci.edu/~qnie/Publications/NumericalOptimization.pdf) 
 - Misc. on numerical optimization:[Neculai Andrei, 2022. "Modern Numerical Nonlinear Optimization," Springer Optimization and Its Applications, Springer, number 978-3-031-08720-2, December](https://link.springer.com/book/10.1007/978-3-031-08720-2)

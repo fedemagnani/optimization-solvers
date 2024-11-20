@@ -18,15 +18,15 @@ impl SufficientDecreaseCondition for BackTracking {
 
 impl LineSearch for BackTracking {
     fn compute_step_len(
-        &self,
+        &mut self,
         x_k: &DVector<Floating>,
+        eval_x_k: &FuncEvalMultivariate,
         direction_k: &DVector<Floating>,
         oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter: usize,
     ) -> Floating {
         let mut t = 1.0;
         let mut i = 0;
-        let eval = oracle(x_k);
 
         while max_iter > i {
             let x_kp1 = x_k + t * direction_k;
@@ -41,7 +41,7 @@ impl LineSearch for BackTracking {
             }
 
             // armijo condition
-            if self.sufficient_decrease(eval.f(), eval_kp1.f(), eval.g(), direction_k) {
+            if self.sufficient_decrease(eval_x_k.f(), eval_kp1.f(), eval_x_k.g(), &t, direction_k) {
                 debug!(target: "backtracking line search", "Sufficient decrease condition met. Exiting with step size: {:?}", t);
                 return t;
             }
@@ -83,7 +83,7 @@ mod backtracking_tests {
         //here we define a rough gradient descent method that uses backtracking line search
         let mut k = 1;
         let mut iterate = DVector::from(vec![180.0, 152.0]);
-        let backtracking = BackTracking::new(1e-4, 0.5);
+        let mut backtracking = BackTracking::new(1e-4, 0.5);
         let gradient_tol = 1e-12;
 
         while max_iter > k {
@@ -96,8 +96,9 @@ mod backtracking_tests {
             }
             let direction = -eval.g();
             let t = <BackTracking as LineSearch>::compute_step_len(
-                &backtracking,
+                &mut backtracking,
                 &iterate,
+                &eval,
                 &direction,
                 &f_and_g,
                 max_iter,
