@@ -7,7 +7,7 @@ edition = "2021"
 derive-getters = "0.5.0"
 nalgebra = { git = "https://github.com/dimforge/nalgebra", rev = "48c8f6a5053fac48e305f5e5e0004a332811d092" }
 thiserror = "2.0.3"
-# nalgebra-lapack = "0.25.0"
+
 tracing = "0.1.40"
 tracing-appender = "0.2.3"
 tracing-subscriber = { version = "0.3.18", features = [
@@ -15,3 +15,7 @@ tracing-subscriber = { version = "0.3.18", features = [
     "fmt",
     "json",
 ] }
+rand = "0.8.5"
+rayon = "1.10.0"
+
+[dev-dependencies]
