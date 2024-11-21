@@ -15,6 +15,10 @@ pub enum SolverError {
     MaxIterReached,
     #[error("Out of domain")]
     OutOfDomain,
+    #[error("Error in input parameters")]
+    ErrorInputParams,
+    #[error("Abnormal termination")]
+    AbnormalTermination,
 }
 
 //Template pattern for solvers. Methods that are already implemented can be freely overriden.
@@ -85,6 +89,9 @@ pub trait OptimizationSolver: ComputeDirection {
             }
 
             let direction = self.compute_direction(&eval_x_k)?;
+            // we normalize the direction
+            // let direction = direction.normalize();
+
             debug!(target: "solver","Gradient: {:?}, Direction: {:?}", eval_x_k.g(), direction);
             self.update_next_iterate(
                 line_search,

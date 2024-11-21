@@ -1,4 +1,10 @@
+#[cfg(feature = "lbfgsb")]
+use lbfgsb_sys::lbfgsb as ffi;
+#[cfg(feature = "lbfgsb")]
+use lbfgsb_sys::string as ffi_string;
 use nalgebra::{DMatrix, DVector};
+#[cfg(feature = "lbfgsb")]
+use std::ffi::CStr;
 
 use tracing::{debug, error, info, warn};
 use tracing_appender::non_blocking::WorkerGuard;
@@ -41,6 +47,11 @@ pub mod quasi_newton {
     use super::*;
     pub mod bfgs;
     pub use bfgs::*;
+
+    #[cfg(feature = "lbfgsb")]
+    pub mod lbfgsb;
+    #[cfg(feature = "lbfgsb")]
+    pub use lbfgsb::*;
 }
 pub use quasi_newton::*;
 

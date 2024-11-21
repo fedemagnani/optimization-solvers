@@ -17,5 +17,10 @@ tracing-subscriber = { version = "0.3.18", features = [
 ] }
 rand = "0.8.5"
 rayon = "1.10.0"
+lbfgsb-sys = { git = "https://github.com/fedemagnani/lbfgsb-sys.git", optional = true }
+
+[features]
+default = []
+lbfgsb = ["lbfgsb-sys"]
 
 [dev-dependencies]

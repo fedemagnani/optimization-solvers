@@ -1,6 +1,8 @@
 # Optimization-Solvers
 
-Rust implementation of oracle-based algorithms for convex optimization problems. 
+Numerical optimization solvers for unconstrained and simple bound-constrained optimization problems. The solvers are implemented in Rust and are based on the ACM Collected Algorithms. The solvers are designed to be easy to use and to be easily integrated into existing codebases. 
+
+> **Note:** Currently the unique non-rust solver is L-BFGS-B, which uses code bindings to the original Fortran implementation.
 
 # Todo
 - Consider implementing solutions for [line search in constrained optimization](https://scicomp.stackexchange.com/questions/7938/line-search-for-constrained-optimization)

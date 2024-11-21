@@ -127,7 +127,7 @@ impl MoreThuente {
         g_tb: &Floating,
     ) -> Floating {
         // Equation 2.4.5 [Sun, Yuan 2006]
-
+        debug!(target: "morethuente line search", "Quadratic minimizer 2: ta: {}, tb: {}, g_ta: {}, g_tb: {}", ta, tb, g_ta, g_tb);
         ta - g_ta * ((ta - tb) / (g_ta - g_tb))
     }
 
@@ -194,10 +194,12 @@ impl LineSearch for MoreThuente {
             } else if interval_converged {
                 debug!("Interval converged at iteration {}", i);
                 return t;
-            } else if t == self.t_min {
+            // } else if t == self.t_min {
+            } else if t == tl {
                 debug!("t is at the minimum value at iteration {}", i);
                 return t;
-            } else if t == self.t_max {
+            // } else if t == self.t_max {
+            } else if t == tu {
                 debug!("t is at the maximum value at iteration {}", i);
                 return t;
             }
@@ -229,6 +231,8 @@ impl LineSearch for MoreThuente {
                 let tc = Self::cubic_minimizer(&tl, &t, &f_tl, f_t, &g_tl, g_t);
                 let tq = Self::quadratic_minimzer_1(&tl, &t, &f_tl, f_t, &g_tl);
 
+                debug!(target: "morethuente line search", "Case 1: tc: {}, tq: {}", tc, tq);
+
                 if (tc - tl).abs() < (tq - tl).abs() {
                     t = tc;
                 } else {
@@ -240,6 +244,8 @@ impl LineSearch for MoreThuente {
                 let tc = Self::cubic_minimizer(&tl, &t, &f_tl, f_t, &g_tl, g_t);
                 let ts = Self::quadratic_minimizer_2(&tl, &t, &g_tl, g_t);
 
+                debug!(target: "morethuente line search", "Case 2: tc: {}, ts: {}", tc, ts);
+
                 if (tc - t).abs() >= (ts - t).abs() {
                     t = tc;
                 } else {
@@ -250,6 +256,8 @@ impl LineSearch for MoreThuente {
             else if g_t.abs() <= g_tl.abs() {
                 let tc = Self::cubic_minimizer(&tl, &t, &f_tl, f_t, &g_tl, g_t);
                 let ts = Self::quadratic_minimizer_2(&tl, &t, &g_tl, g_t);
+
+                debug!(target: "morethuente line search", "Case 3: tc: {}, ts: {}", tc, ts);
 
                 let t_plus = if (tc - t).abs() < (ts - t).abs() {
                     tc
@@ -274,6 +282,7 @@ impl LineSearch for MoreThuente {
                         (*psi_tu.f(), *psi_tu.g())
                     }
                 };
+                debug!(target: "morethuente line search", "Case 4: f_tu: {}, g_tu: {}", f_tu, g_tu);
                 t = Self::cubic_minimizer(&tu, &t, f_t, &f_tu, g_t, &g_tu);
             }
 
