@@ -6,7 +6,10 @@ Numerical optimization solvers for unconstrained and simple bound-constrained op
 
 
 <!-- we include an image from the assets folder -->
-![quadratic minimization](assets/quadratic.png)
+<figure>
+    <img src="assets/quadratic.png" alt="Quadratic">
+    <figcaption>Minimization of quadratic function using gradient descent solver</figcaption>
+</figure>
 
 
 # Todo
