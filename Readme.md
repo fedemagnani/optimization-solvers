@@ -4,12 +4,8 @@ Numerical optimization solvers for unconstrained and simple bound-constrained op
 
 > **Note:** Currently the unique non-rust solver is L-BFGS-B, which uses code bindings to the original Fortran implementation.
 
-
-<!-- we include an image from the assets folder -->
-<figure>
-    <img src="assets/quadratic.png" alt="Quadratic">
-    <figcaption>Minimization of quadratic function using gradient descent solver</figcaption>
-</figure>
+![Quadratic](assets/quadratic.png)
+In the figure above: minimization of quadratic function using gradient descent solver
 
 
 # Todo
