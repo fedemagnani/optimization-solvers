@@ -6,9 +6,7 @@ Numerical optimization solvers for unconstrained and simple bound-constrained op
 
 
 <!-- we include an image from the assets folder -->
-<div style="text-align: center;">
-    <img src="assets/quadratic.png" alt="Optimization Solvers" width="600" height="400">
-</div>
+![quadratic minimization](assets/quadratic.png)
 
 
 # Todo
