@@ -108,8 +108,14 @@ mod gradient_descent_test {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
-            .unwrap();
+        gd.minimize(
+            &mut ls,
+            f_and_g,
+            max_iter_solver,
+            max_iter_line_search,
+            None,
+        )
+        .unwrap();
 
         println!("Iterate: {:?}", gd.xk());
 
@@ -151,8 +157,14 @@ mod gradient_descent_test {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
-            .unwrap();
+        gd.minimize(
+            &mut ls,
+            f_and_g,
+            max_iter_solver,
+            max_iter_line_search,
+            None,
+        )
+        .unwrap();
 
         println!("Iterate: {:?}", gd.xk());
 

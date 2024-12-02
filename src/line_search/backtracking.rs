@@ -35,14 +35,14 @@ impl LineSearch for BackTracking {
 
             // we check if we are out of domain
             if eval_kp1.f().is_nan() || eval_kp1.f().is_infinite() {
-                debug!(target: "backtracking line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
+                trace!(target: "backtracking line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
                 t *= self.beta;
                 continue;
             }
 
             // armijo condition
             if self.sufficient_decrease(eval_x_k.f(), eval_kp1.f(), eval_x_k.g(), &t, direction_k) {
-                debug!(target: "backtracking line search", "Sufficient decrease condition met. Exiting with step size: {:?}", t);
+                trace!(target: "backtracking line search", "Sufficient decrease condition met. Exiting with step size: {:?}", t);
                 return t;
             }
 
@@ -50,7 +50,7 @@ impl LineSearch for BackTracking {
             t *= self.beta;
             i += 1;
         }
-        debug!(target: "backtracking line search", "Max iter reached. Early stopping.");
+        trace!(target: "backtracking line search", "Max iter reached. Early stopping.");
         t
         // worst case scenario: t=0 (or t>0 but t<1 because of early stopping).
         // if t=0 we are not updating the iterate
@@ -87,11 +87,11 @@ mod backtracking_tests {
         let gradient_tol = 1e-12;
 
         while max_iter > k {
-            debug!("Iterate: {:?}", iterate);
+            trace!("Iterate: {:?}", iterate);
             let eval = f_and_g(&iterate);
             // we do a rough check on the squared norm of the gradient to verify convergence
             if eval.g().dot(eval.g()) < gradient_tol {
-                warn!("Gradient norm is lower than tolerance. Convergence!.");
+                trace!("Gradient norm is lower than tolerance. Convergence!.");
                 break;
             }
             let direction = -eval.g();

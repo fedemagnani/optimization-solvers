@@ -127,7 +127,7 @@ impl MoreThuente {
         g_tb: &Floating,
     ) -> Floating {
         // Equation 2.4.5 [Sun, Yuan 2006]
-        debug!(target: "morethuente line search", "Quadratic minimizer 2: ta: {}, tb: {}, g_ta: {}, g_tb: {}", ta, tb, g_ta, g_tb);
+        trace!(target: "morethuente line search", "Quadratic minimizer 2: ta: {}, tb: {}, g_ta: {}, g_tb: {}", ta, tb, g_ta, g_tb);
         ta - g_ta * ((ta - tb) / (g_ta - g_tb))
     }
 
@@ -189,18 +189,18 @@ impl LineSearch for MoreThuente {
                 &t,
                 direction_k,
             ) {
-                debug!("Strong Wolfe conditions satisfied at iteration {}", i);
+                trace!("Strong Wolfe conditions satisfied at iteration {}", i);
                 return t;
             } else if interval_converged {
-                debug!("Interval converged at iteration {}", i);
+                trace!("Interval converged at iteration {}", i);
                 return t;
             // } else if t == self.t_min {
             } else if t == tl {
-                debug!("t is at the minimum value at iteration {}", i);
+                trace!("t is at the minimum value at iteration {}", i);
                 return t;
             // } else if t == self.t_max {
             } else if t == tu {
-                debug!("t is at the maximum value at iteration {}", i);
+                trace!("t is at the maximum value at iteration {}", i);
                 return t;
             }
 
@@ -231,7 +231,7 @@ impl LineSearch for MoreThuente {
                 let tc = Self::cubic_minimizer(&tl, &t, &f_tl, f_t, &g_tl, g_t);
                 let tq = Self::quadratic_minimzer_1(&tl, &t, &f_tl, f_t, &g_tl);
 
-                debug!(target: "morethuente line search", "Case 1: tc: {}, tq: {}", tc, tq);
+                trace!(target: "morethuente line search", "Case 1: tc: {}, tq: {}", tc, tq);
 
                 if (tc - tl).abs() < (tq - tl).abs() {
                     t = tc;
@@ -244,7 +244,7 @@ impl LineSearch for MoreThuente {
                 let tc = Self::cubic_minimizer(&tl, &t, &f_tl, f_t, &g_tl, g_t);
                 let ts = Self::quadratic_minimizer_2(&tl, &t, &g_tl, g_t);
 
-                debug!(target: "morethuente line search", "Case 2: tc: {}, ts: {}", tc, ts);
+                trace!(target: "morethuente line search", "Case 2: tc: {}, ts: {}", tc, ts);
 
                 if (tc - t).abs() >= (ts - t).abs() {
                     t = tc;
@@ -257,7 +257,7 @@ impl LineSearch for MoreThuente {
                 let tc = Self::cubic_minimizer(&tl, &t, &f_tl, f_t, &g_tl, g_t);
                 let ts = Self::quadratic_minimizer_2(&tl, &t, &g_tl, g_t);
 
-                debug!(target: "morethuente line search", "Case 3: tc: {}, ts: {}", tc, ts);
+                trace!(target: "morethuente line search", "Case 3: tc: {}, ts: {}", tc, ts);
 
                 let t_plus = if (tc - t).abs() < (ts - t).abs() {
                     tc
@@ -282,7 +282,7 @@ impl LineSearch for MoreThuente {
                         (*psi_tu.f(), *psi_tu.g())
                     }
                 };
-                debug!(target: "morethuente line search", "Case 4: f_tu: {}, g_tu: {}", f_tu, g_tu);
+                trace!(target: "morethuente line search", "Case 4: f_tu: {}, g_tu: {}", f_tu, g_tu);
                 t = Self::cubic_minimizer(&tu, &t, f_t, &f_tu, g_t, &g_tu);
             }
 
@@ -292,7 +292,7 @@ impl LineSearch for MoreThuente {
             //Updating algorithm (section 2 and 3 of the paper)
             interval_converged = Self::update_interval(&f_tl, f_t, g_t, &mut tl, t, &mut tu)
         }
-        warn!("Line search did not converge in {} iterations", max_iter);
+        trace!("Line search did not converge in {} iterations", max_iter);
         t
     }
 }
@@ -324,11 +324,11 @@ mod morethuente_test {
         let gradient_tol = 1e-12;
 
         while max_iter > k {
-            debug!("Iterate: {:?}", iterate);
+            trace!("Iterate: {:?}", iterate);
             let eval = f_and_g(&iterate);
             // we do a rough check on the squared norm of the gradient to verify convergence
             if eval.g().dot(eval.g()) < gradient_tol {
-                warn!("Gradient norm is lower than tolerance. Convergence!.");
+                trace!("Gradient norm is lower than tolerance. Convergence!.");
                 break;
             }
             let direction = -eval.g();
@@ -342,6 +342,6 @@ mod morethuente_test {
         println!("Iterate: {:?}", iterate);
         println!("Function eval: {:?}", f_and_g(&iterate));
         assert!((iterate[0] - 0.0).abs() < 1e-6);
-        debug!("Test took {} iterations", k);
+        trace!("Test took {} iterations", k);
     }
 }

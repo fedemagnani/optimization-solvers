@@ -37,6 +37,10 @@ impl Tracer {
         self
     }
 
+    pub fn with_normal_stdout_layer(self) -> Self {
+        self.with_stdout_layer(Some(LogFormat::Normal))
+    }
+
     /// Builds a new Tracer with the layers set in the building steps. Don't drop the guards!
     pub fn build(self) -> Vec<WorkerGuard> {
         let env_filter = EnvFilter::from_default_env();

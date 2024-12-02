@@ -4,6 +4,13 @@ Numerical optimization solvers for unconstrained and simple bound-constrained op
 
 > **Note:** Currently the unique non-rust solver is L-BFGS-B, which uses code bindings to the original Fortran implementation.
 
+
+<!-- we include an image from the assets folder -->
+<div style="text-align: center;">
+    <img src="assets/quadratic.png" alt="Optimization Solvers" width="600" height="400">
+</div>
+
+
 # Todo
 - Consider implementing solutions for [line search in constrained optimization](https://scicomp.stackexchange.com/questions/7938/line-search-for-constrained-optimization)
 - Consider adding [preconditioning techniques]()

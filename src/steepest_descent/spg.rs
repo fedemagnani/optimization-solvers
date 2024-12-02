@@ -177,8 +177,14 @@ mod spg_test {
         let max_iter_solver = 10000;
         let max_iter_line_search = 1000;
 
-        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
-            .unwrap();
+        gd.minimize(
+            &mut ls,
+            f_and_g,
+            max_iter_solver,
+            max_iter_line_search,
+            None,
+        )
+        .unwrap();
 
         println!("Iterate: {:?}", gd.xk());
 

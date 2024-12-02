@@ -126,8 +126,14 @@ mod steepest_descent_l1_test {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        sdl1.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
-            .unwrap();
+        sdl1.minimize(
+            &mut ls,
+            f_and_g,
+            max_iter_solver,
+            max_iter_line_search,
+            None,
+        )
+        .unwrap();
 
         println!("Iterate: {:?}", sdl1.xk());
 
@@ -170,8 +176,14 @@ mod steepest_descent_l1_test {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        sdl1.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
-            .unwrap();
+        sdl1.minimize(
+            &mut ls,
+            f_and_g,
+            max_iter_solver,
+            max_iter_line_search,
+            None,
+        )
+        .unwrap();
 
         println!("Iterate: {:?}", sdl1.xk());
 

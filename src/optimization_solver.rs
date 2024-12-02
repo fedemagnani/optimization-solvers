@@ -71,6 +71,7 @@ pub trait OptimizationSolver: ComputeDirection {
         oracle: impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter_solver: usize,
         max_iter_line_search: usize,
+        mut callback: Option<&mut dyn FnMut(&Self)>,
     ) -> Result<(), SolverError> {
         *self.k_mut() = 0;
 
@@ -89,8 +90,6 @@ pub trait OptimizationSolver: ComputeDirection {
             }
 
             let direction = self.compute_direction(&eval_x_k)?;
-            // we normalize the direction
-            // let direction = direction.normalize();
 
             debug!(target: "solver","Gradient: {:?}, Direction: {:?}", eval_x_k.g(), direction);
             self.update_next_iterate(
@@ -105,6 +104,9 @@ pub trait OptimizationSolver: ComputeDirection {
             debug!(target: "solver","Function eval: {:?}", eval_x_k);
 
             *self.k_mut() += 1;
+            if let Some(callback) = callback.as_mut() {
+                callback(self);
+            }
         }
         warn!(target: "solver","Minimization completed: max iter reached during minimization");
         Err(SolverError::MaxIterReached)

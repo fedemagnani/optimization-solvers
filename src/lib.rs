@@ -6,7 +6,7 @@ use nalgebra::{DMatrix, DVector};
 #[cfg(feature = "lbfgsb")]
 use std::ffi::CStr;
 
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, trace, warn};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::{
     fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer, Registry,
@@ -79,3 +79,6 @@ pub mod newton;
 pub use newton::*;
 
 pub use line_search::*;
+
+pub mod plotter_3d;
+pub use plotter_3d::*;

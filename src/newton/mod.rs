@@ -97,7 +97,7 @@ mod newton_test {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        nt.minimize(&mut ls, oracle, max_iter_solver, max_iter_line_search)
+        nt.minimize(&mut ls, oracle, max_iter_solver, max_iter_line_search, None)
             .unwrap();
 
         println!("Iterate: {:?}", nt.xk());
@@ -142,7 +142,7 @@ mod newton_test {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100;
 
-        nt.minimize(&mut ls, oracle, max_iter_solver, max_iter_line_search)
+        nt.minimize(&mut ls, oracle, max_iter_solver, max_iter_line_search, None)
             .unwrap();
 
         println!("Iterate: {:?}", nt.xk());

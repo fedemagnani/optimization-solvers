@@ -68,12 +68,12 @@ impl LineSearch for BackTrackingB {
             let eval_kp1 = oracle(&x_kp1);
             // we check if we are out of domain
             if eval_kp1.f().is_nan() || eval_kp1.f().is_infinite() {
-                debug!(target: "backtracking_b line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
+                trace!(target: "backtracking_b line search", "Step size too big: next iterate is out of domain. Decreasing step by beta ({:?})", x_kp1);
                 t *= self.beta;
                 continue;
             }
             if self.sufficient_decrease_with_bounds(x_k, &x_kp1, eval_x_k.f(), eval_kp1.f(), &t) {
-                debug!(target: "backtracking_b line search", "Modified Armijo rule met. Exiting with step size: {:?} at iteration {:?}", t, i);
+                trace!(target: "backtracking_b line search", "Modified Armijo rule met. Exiting with step size: {:?} at iteration {:?}", t, i);
                 return t;
             }
 
@@ -81,7 +81,7 @@ impl LineSearch for BackTrackingB {
             t *= self.beta;
             i += 1;
         }
-        debug!(target: "backtracking_b line search", "Max iter reached. Early stopping.");
+        trace!(target: "backtracking_b line search", "Max iter reached. Early stopping.");
         t
         // worst case scenario: t=0 (or t>0 but t<1 because of early stopping).
         // if t=0 we are not updating the iterate

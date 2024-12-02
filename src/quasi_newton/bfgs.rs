@@ -162,8 +162,14 @@ mod test_bfgs {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100000;
 
-        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
-            .unwrap();
+        gd.minimize(
+            &mut ls,
+            f_and_g,
+            max_iter_solver,
+            max_iter_line_search,
+            None,
+        )
+        .unwrap();
 
         println!("Iterate: {:?}", gd.xk());
 
@@ -207,8 +213,14 @@ mod test_bfgs {
         let max_iter_solver = 1000;
         let max_iter_line_search = 100000;
 
-        gd.minimize(&mut ls, f_and_g, max_iter_solver, max_iter_line_search)
-            .unwrap();
+        gd.minimize(
+            &mut ls,
+            f_and_g,
+            max_iter_solver,
+            max_iter_line_search,
+            None,
+        )
+        .unwrap();
 
         println!("Iterate: {:?}", gd.xk());
 

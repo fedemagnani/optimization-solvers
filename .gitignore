@@ -1,5 +1,6 @@
 /target
 /src/bin/univ2.rs
-/src/bin/univ2_sing_pool.rs
+/src/bin/univ2_algo.rs
 t.ipynb
 notes.md
+convergence-plot.ipynb

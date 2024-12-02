@@ -71,23 +71,30 @@ impl LineSearch for GLLQuadratic {
 
             // armijo condition
             if self.sufficient_decrease(&f_max, eval_kp1.f(), eval_x_k.g(), &t, direction_k) {
-                debug!(target: "gll quadratic line search", "Sufficient decrease condition met. Exiting with step size: {:?}", t);
+                trace!(target: "gll quadratic line search", "Sufficient decrease condition met. Exiting with step size: {:?}", t);
                 return t;
             }
 
-            let t_tmp = -0.5 * t * t * eval_x_k.g().dot(direction_k)
-                / (eval_kp1.f() - eval_x_k.f() - t * eval_x_k.g().dot(direction_k));
-            if t_tmp > self.sigma1 && t_tmp < self.sigma2 * t {
-                debug!(target: "gll quadratic line search", "Safeguarded step size: {}", t_tmp);
-                t = t_tmp;
-            } else {
-                // if step is not safeguarded, we take a conservative bissected step
-                debug!(target: "gll quadratic line search", "t_tmp = {} not in [{}, {}]. Bissecting.", t_tmp, self.sigma1, self.sigma2 * t);
+            if t <= 0.1 {
+                trace!(target: "gll quadratic line search", "Step size too small: {}; Bissecting.", t);
                 t *= 0.5;
+            } else {
+                // here step size is sufficiently large to perform a quadratic interpolation
+                let t_tmp = -0.5 * t * t * eval_x_k.g().dot(direction_k)
+                    / (eval_kp1.f() - eval_x_k.f() - t * eval_x_k.g().dot(direction_k));
+                if t_tmp > self.sigma1 && t_tmp < self.sigma2 * t {
+                    trace!(target: "gll quadratic line search", "Safeguarded step size: {}", t_tmp);
+                    t = t_tmp;
+                } else {
+                    // if step is not safeguarded, we take a conservative bissected step
+                    trace!(target: "gll quadratic line search", "t_tmp = {} not in [{}, {}]. Bissecting t_tmp.", t_tmp, self.sigma1, self.sigma2 * t);
+                    t = t_tmp * 0.5;
+                }
             }
+
             i += 1;
         }
-        warn!(target: "gll quadratic line search", "Max iter reached. Early stopping.");
+        trace!(target: "gll quadratic line search", "Max iter reached. Early stopping.");
         t
     }
 }
