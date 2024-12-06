@@ -1,5 +1,8 @@
 use super::*;
 
+pub mod projected_newton;
+pub use projected_newton::*;
+
 #[derive(derive_getters::Getters)]
 pub struct Newton {
     tol: Floating,
@@ -44,7 +47,7 @@ impl ComputeDirection for Newton {
     }
 }
 
-impl OptimizationSolver for Newton {
+impl LineSearchSolver for Newton {
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }

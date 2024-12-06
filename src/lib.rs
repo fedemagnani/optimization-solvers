@@ -31,8 +31,8 @@ use tracing_subscriber::{
 pub mod tracer;
 pub use tracer::*;
 
-pub mod optimization_solver;
-pub use optimization_solver::*;
+pub mod ls_solver;
+pub use ls_solver::*;
 
 pub mod func_eval;
 pub use func_eval::*;
@@ -77,6 +77,13 @@ pub use steepest_descent::*;
 
 pub mod newton;
 pub use newton::*;
+
+pub mod online {
+    use super::*;
+    pub mod osgmg;
+    pub use osgmg::*;
+}
+pub use online::*;
 
 pub use line_search::*;
 

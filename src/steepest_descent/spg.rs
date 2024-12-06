@@ -85,7 +85,7 @@ impl ComputeDirection for SpectralProjectedGradient {
     }
 }
 
-impl OptimizationSolver for SpectralProjectedGradient {
+impl LineSearchSolver for SpectralProjectedGradient {
     fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool {
         let projected_gradient = self.projected_gradient(eval);
         projected_gradient.infinity_norm() < self.grad_tol
@@ -102,6 +102,7 @@ impl OptimizationSolver for SpectralProjectedGradient {
     fn k_mut(&mut self) -> &mut usize {
         &mut self.k
     }
+
     fn update_next_iterate<LS: LineSearch>(
         &mut self,
         line_search: &mut LS,

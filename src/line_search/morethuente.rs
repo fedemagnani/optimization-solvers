@@ -205,7 +205,7 @@ impl LineSearch for MoreThuente {
             }
 
             let phi_t = Self::phi(&eval_t, direction_k);
-            let phi_0 = Self::phi(&eval_0, direction_k);
+            let phi_0 = Self::phi(eval_0, direction_k);
 
             let psi_t = self.psi(&phi_0, &phi_t, &t);
 

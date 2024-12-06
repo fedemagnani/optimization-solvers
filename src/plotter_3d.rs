@@ -10,12 +10,12 @@ pub struct Plotter3d {
     plot: Plot,
 }
 impl Plotter3d {
-    pub fn new(min_value: f64, max_value: f64, mesh_size: usize) -> Self {
+    pub fn new(xmin: f64, xmax: f64, ymin: f64, ymax: f64, mesh_size: usize) -> Self {
         let (mesh_x, mesh_y) = (0..mesh_size)
             .map(|i| {
                 (
-                    min_value + (max_value - min_value) * (i as f64) / (mesh_size as f64),
-                    min_value + (max_value - min_value) * (i as f64) / (mesh_size as f64),
+                    xmin + (xmax - xmin) * (i as f64) / (mesh_size as f64),
+                    ymin + (ymax - ymin) * (i as f64) / (mesh_size as f64),
                 )
             })
             .unzip();
@@ -49,9 +49,10 @@ impl Plotter3d {
         for (i, x) in x.iter().enumerate() {
             for (j, y) in y.iter().enumerate() {
                 let input = DVector::from_vec(vec![*x, *y]);
-                z[i][j] = *oracle(&input).f();
+                z[j][i] = *oracle(&input).f();
             }
         }
+
         let surface = Surface::new(z)
             .x(x)
             .y(y)

@@ -60,7 +60,7 @@ impl ComputeDirection for ProjectedGradientDescent {
     }
 }
 
-impl OptimizationSolver for ProjectedGradientDescent {
+impl LineSearchSolver for ProjectedGradientDescent {
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }
@@ -101,12 +101,6 @@ impl OptimizationSolver for ProjectedGradientDescent {
         debug!(target: "projected_gradient_descent", "ITERATE: {} + {} * {} = {}", self.xk(), step, direction, self.xk() + step * direction);
 
         let next_iterate = self.xk() + step * direction;
-
-        // // we project the next iterate;
-        // let next_iterate = next_iterate.box_projection(&self.lower_bound, &self.upper_bound);
-
-        // // compute the projected gradient;
-        // self.pg = &next_iterate - self.xk();
 
         *self.xk_mut() = next_iterate;
 

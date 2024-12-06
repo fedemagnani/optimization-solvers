@@ -1,5 +1,5 @@
 use nalgebra::{DMatrix, DVector};
-use optimization_solvers::{FuncEvalMultivariate, MoreThuente, OptimizationSolver, Tracer, BFGS};
+use optimization_solvers::{FuncEvalMultivariate, LineSearchSolver, MoreThuente, Tracer, BFGS};
 
 fn main() {
     // Setting up log verbosity and tracer

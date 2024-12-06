@@ -36,7 +36,7 @@ impl ComputeDirection for PnormDescent {
     }
 }
 
-impl OptimizationSolver for PnormDescent {
+impl LineSearchSolver for PnormDescent {
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }

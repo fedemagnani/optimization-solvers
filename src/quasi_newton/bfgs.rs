@@ -48,7 +48,7 @@ impl ComputeDirection for BFGS {
     }
 }
 
-impl OptimizationSolver for BFGS {
+impl LineSearchSolver for BFGS {
     fn k(&self) -> &usize {
         &self.k
     }

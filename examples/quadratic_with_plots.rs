@@ -1,7 +1,7 @@
 use nalgebra::{DMatrix, DVector};
 use optimization_solvers::{
-    BackTracking, FuncEvalMultivariate, GradientDescent, MoreThuente, OptimizationSolver,
-    Plotter3d, Tracer, BFGS,
+    BackTracking, FuncEvalMultivariate, GradientDescent, LineSearchSolver, MoreThuente, Plotter3d,
+    Tracer, BFGS,
 };
 
 fn main() {
@@ -52,7 +52,7 @@ fn main() {
     let n = 50;
     let start = -5.0;
     let end = 5.0;
-    let plotter = Plotter3d::new(start, end, n)
+    let plotter = Plotter3d::new(start, end, start, end, n)
         .append_plot(&f_and_g, "Objective function", 0.5)
         .append_scatter_points(&f_and_g, &iterates, "Iterates")
         .set_layout_size(1600, 1000);

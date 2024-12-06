@@ -47,7 +47,7 @@ impl ComputeDirection for CoordinateDescent {
     }
 }
 
-impl OptimizationSolver for CoordinateDescent {
+impl LineSearchSolver for CoordinateDescent {
     fn xk(&self) -> &DVector<Floating> {
         &self.x
     }

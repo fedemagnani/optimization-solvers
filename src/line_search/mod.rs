@@ -7,7 +7,8 @@ pub mod backtracking_b;
 pub use backtracking_b::*;
 pub mod gll_quadratic;
 pub use gll_quadratic::*;
-
+pub mod nosearch;
+pub use nosearch::*;
 pub trait LineSearch {
     fn compute_step_len(
         &mut self,
