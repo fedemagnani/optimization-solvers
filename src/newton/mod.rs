@@ -2,7 +2,8 @@ use super::*;
 
 pub mod projected_newton;
 pub use projected_newton::*;
-
+pub mod spn;
+pub use spn::*;
 #[derive(derive_getters::Getters)]
 pub struct Newton {
     tol: Floating,
