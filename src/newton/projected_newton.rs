@@ -7,9 +7,23 @@ pub struct ProjectedNewton {
     k: usize,
     lower_bound: DVector<Floating>,
     upper_bound: DVector<Floating>,
+    s_norm: Option<Floating>,
+    y_norm: Option<Floating>,
 }
 
 impl ProjectedNewton {
+    pub fn next_iterate_too_close(&self) -> bool {
+        match self.s_norm() {
+            Some(s) => s < &self.grad_tol,
+            None => false,
+        }
+    }
+    pub fn gradient_next_iterate_too_close(&self) -> bool {
+        match self.y_norm() {
+            Some(y) => y < &self.grad_tol,
+            None => false,
+        }
+    }
     pub fn new(
         grad_tol: Floating,
         x0: DVector<Floating>,
@@ -25,6 +39,8 @@ impl ProjectedNewton {
             k: 0,
             lower_bound,
             upper_bound,
+            s_norm: None,
+            y_norm: None,
             // pg,
         }
     }
@@ -79,10 +95,18 @@ impl LineSearchSolver for ProjectedNewton {
     fn has_converged(&self, eval: &FuncEvalMultivariate) -> bool {
         // we verify that the norm of the gradient is below the tolerance. If the projected gradient is available, then it means that we are in a constrained optimization setting and we verify if it is zero since this is equivalent to first order conditions of optimality in the setting of optimization with simple bounds (Theorem 12.3 from [Neculai Andrei, 2022])
 
-        let proj_grad = self.projected_gradient(eval);
-        // warn!(target: "projected_newton", "Projected gradient: {:?}", proj_grad);
-        // we compute the infinity norm of the projected gradient
-        proj_grad.infinity_norm() < self.grad_tol
+        if self.next_iterate_too_close() {
+            warn!(target: "bfgs","Minimization completed: next iterate too close");
+            true
+        } else if self.gradient_next_iterate_too_close() {
+            warn!(target: "bfgs","Minimization completed: gradient next iterate too close");
+            true
+        } else {
+            let proj_grad = self.projected_gradient(eval);
+            // warn!(target: "projected_newton", "Projected gradient: {:?}", proj_grad);
+            // we compute the infinity norm of the projected gradient
+            proj_grad.infinity_norm() < self.grad_tol
+        }
     }
 
     fn update_next_iterate<LS: LineSearch>(
@@ -104,6 +128,11 @@ impl LineSearchSolver for ProjectedNewton {
         debug!(target: "projected_newton", "ITERATE: {} + {} * {} = {}", self.xk(), step, direction, self.xk() + step * direction);
 
         let next_iterate = self.xk() + step * direction;
+
+        let s = &next_iterate - &self.x;
+        self.s_norm = Some(s.norm());
+        let y = oracle(&next_iterate).g() - eval_x_k.g();
+        self.y_norm = Some(y.norm());
 
         *self.xk_mut() = next_iterate;
 

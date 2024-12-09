@@ -2,7 +2,11 @@
 /src/bin/univ2_fixed_pools.rs
 /src/bin/univ2_rand_pools.rs
 /src/bin/univ2_rand_pools_log.rs
+/src/bin/univ2_rand_pools_log_2.rs
 /src/bin/univ2_algo.rs
 t.ipynb
 notes.md
 convergence-plot.ipynb
+
+*.html
+*.dat

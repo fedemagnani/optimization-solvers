@@ -120,6 +120,7 @@ impl LineSearchSolver for BFGSB {
         );
 
         let next_iterate = self.xk() + step * direction;
+        debug!(target: "BFGSB", "ITERATE: {} + {} * {} = {}", self.xk(), step, direction, next_iterate);
 
         let s = &next_iterate - &self.x;
         self.s_norm = Some(s.norm());
@@ -178,7 +179,7 @@ mod bfgsb_test {
         let mut ls = BackTrackingB::new(alpha, beta, lower_bounds.clone(), upper_oounds.clone());
 
         // Gradient descent builder
-        let tol = 1e-6;
+        let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
         let mut gd = BFGSB::new(tol, x_0, lower_bounds, upper_oounds);
 

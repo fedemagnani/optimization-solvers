@@ -3,6 +3,8 @@ pub mod backtracking;
 pub use backtracking::*;
 pub mod morethuente;
 pub use morethuente::*;
+pub mod morethuente_b;
+pub use morethuente_b::*;
 pub mod backtracking_b;
 pub use backtracking_b::*;
 pub mod gll_quadratic;

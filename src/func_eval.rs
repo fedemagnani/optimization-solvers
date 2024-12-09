@@ -26,6 +26,9 @@ impl FuncEvalMultivariate {
         self.hessian = Some(hessian);
         self
     }
+    pub fn take_hessian(&mut self) -> DMatrix<Floating> {
+        self.hessian.take().unwrap()
+    }
 }
 
 impl From<(Floating, DVector<Floating>)> for FuncEvalMultivariate {
