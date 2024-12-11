@@ -47,14 +47,20 @@ pub mod quasi_newton {
     use super::*;
     pub mod bfgs;
     pub use bfgs::*;
-    pub mod bfgsb;
-    pub use bfgsb::*;
+    pub mod bfgs_b;
+    pub use bfgs_b::*;
     pub mod broyden;
     pub use broyden::*;
+    pub mod broyden_b;
+    pub use broyden_b::*;
     pub mod dfp;
     pub use dfp::*;
+    pub mod dfp_b;
+    pub use dfp_b::*;
     pub mod sr1;
     pub use sr1::*;
+    pub mod sr1_b;
+    pub use sr1_b::*;
 
     #[cfg(feature = "lbfgsb")]
     pub mod lbfgsb;

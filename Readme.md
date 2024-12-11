@@ -43,7 +43,7 @@ Distributed Parameter PDE-Constrained Inverse Problems", PhD Thesis, University 
 - Survey of existing solvers for bound-constrained optimization: [Birgin, E.G., Gentil, J.M. Evaluating bound-constrained minimization software. Comput Optim Appl 53, 347–373 (2012)](https://www.ime.usp.br/%7Eegbirgin/publications/bg-bdseval.pdf)
 - Spectral Projected Gradient Method (ACM Algo 813): [Birgin, Ernesto & Martínez, José Mario & Raydan, Marcos. (2014). Spectral Projected Gradient Methods: Review and Perspectives. Journal of Statistical Software. 60. 1-21. 10.18637/jss.v060.i03.](https://www.ime.usp.br/~egbirgin/publications/bmr5.pdf)
 
-# Nice community questions
+## Nice community questions
 
 - Preconditioning gradient descent: https://stats.stackexchange.com/questions/91862/preconditioning-gradient-descent
 - Basic preconditioned gradient descent example: https://stats.stackexchange.com/questions/486594/basic-preconditioned-gradient-descent-example
