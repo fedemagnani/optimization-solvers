@@ -17,7 +17,7 @@ pub trait LineSearch {
         x_k: &DVector<Floating>,         // current iterate
         eval_x_k: &FuncEvalMultivariate, // function evaluation at x_k
         direction_k: &DVector<Floating>, // direction of the ray along which we are going to search
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate, // oracle
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate, // oracle
         max_iter: usize, // maximum number of iterations during line search (if direction update is costly, set this high to perform more exact line search)
     ) -> Floating; //returns the scalar step size
 }

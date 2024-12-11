@@ -22,7 +22,7 @@ impl LineSearch for BackTracking {
         x_k: &DVector<Floating>,
         eval_x_k: &FuncEvalMultivariate,
         direction_k: &DVector<Floating>,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter: usize,
     ) -> Floating {
         let mut t = 1.0;
@@ -74,7 +74,7 @@ mod backtracking_tests {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
-        let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
+        let mut f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
             let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
             let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g).into()
@@ -100,7 +100,7 @@ mod backtracking_tests {
                 &iterate,
                 &eval,
                 &direction,
-                &f_and_g,
+                &mut f_and_g,
                 max_iter,
             );
             //we perform the update

@@ -22,7 +22,7 @@ pub struct Lbfgsb {
 impl Lbfgsb {
     pub fn minimize(
         &mut self,
-        oracle: impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        mut oracle: impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         x0: &mut DVector<Floating>,
     ) -> Result<(), SolverError> {
         let eval = oracle(x0);

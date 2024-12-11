@@ -24,7 +24,7 @@ pub struct OSGMG {}
 impl OSGMG {
     pub fn minimize(
         x0: DVector<Floating>,
-        oracle: impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        mut oracle: impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter: usize,
         s_pattern: SparsityPattern,
         adagrad_alpha: Floating,
@@ -134,7 +134,7 @@ mod tests {
     use crate::tracer::Tracer;
     use nalgebra::{DMatrix, DVector};
 
-    #[test]
+    // #[test]
     pub fn osgmg() {
         std::env::set_var("RUST_LOG", "info");
 

@@ -33,7 +33,7 @@ pub trait LineSearchSolver: ComputeDirection {
 
     fn evaluate_x_k(
         &mut self,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
     ) -> Result<FuncEvalMultivariate, SolverError> {
         let eval_x_k = oracle(self.xk());
         if eval_x_k.f().is_nan() || eval_x_k.f().is_infinite() {
@@ -47,7 +47,7 @@ pub trait LineSearchSolver: ComputeDirection {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate, //eval_x_k: &FuncEvalMultivariate,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
@@ -55,7 +55,7 @@ pub trait LineSearchSolver: ComputeDirection {
             self.xk(),
             eval_x_k,
             direction,
-            &oracle,
+            oracle,
             max_iter_line_search,
         );
 
@@ -68,7 +68,7 @@ pub trait LineSearchSolver: ComputeDirection {
     fn minimize<LS: LineSearch>(
         &mut self,
         line_search: &mut LS,
-        oracle: impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        mut oracle: impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter_solver: usize,
         max_iter_line_search: usize,
         mut callback: Option<&mut dyn FnMut(&Self)>,
@@ -78,7 +78,7 @@ pub trait LineSearchSolver: ComputeDirection {
         self.setup();
 
         while &max_iter_solver > self.k() {
-            let eval_x_k = self.evaluate_x_k(&oracle)?;
+            let eval_x_k = self.evaluate_x_k(&mut oracle)?;
 
             if self.has_converged(&eval_x_k) {
                 info!(
@@ -95,7 +95,7 @@ pub trait LineSearchSolver: ComputeDirection {
             self.update_next_iterate(
                 line_search,
                 &eval_x_k,
-                &oracle,
+                &mut oracle,
                 &direction,
                 max_iter_line_search,
             )?;

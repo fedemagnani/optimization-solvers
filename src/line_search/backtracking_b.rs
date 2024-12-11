@@ -55,7 +55,7 @@ impl LineSearch for BackTrackingB {
         x_k: &DVector<Floating>,
         eval_x_k: &FuncEvalMultivariate,
         direction_k: &DVector<Floating>,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: & mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         max_iter: usize,
     ) -> Floating {
         let mut t = 1.0;

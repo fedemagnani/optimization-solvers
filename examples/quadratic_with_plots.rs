@@ -10,7 +10,7 @@ fn main() {
     let tracer = Tracer::default().with_normal_stdout_layer().build();
     // Setting up the oracle
     let matrix = DMatrix::from_vec(2, 2, vec![100., 0., 0., 100.]);
-    let f_and_g = |x: &DVector<f64>| -> FuncEvalMultivariate {
+    let mut f_and_g = |x: &DVector<f64>| -> FuncEvalMultivariate {
         let f = x.dot(&(&matrix * x));
         let g = 2. * &matrix * x;
         FuncEvalMultivariate::new(f, g)
@@ -53,8 +53,8 @@ fn main() {
     let start = -5.0;
     let end = 5.0;
     let plotter = Plotter3d::new(start, end, start, end, n)
-        .append_plot(&f_and_g, "Objective function", 0.5)
-        .append_scatter_points(&f_and_g, &iterates, "Iterates")
+        .append_plot(&mut f_and_g, "Objective function", 0.5)
+        .append_scatter_points(&mut f_and_g, &iterates, "Iterates")
         .set_layout_size(1600, 1000);
     plotter.build("quadratic.html");
 }

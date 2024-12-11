@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(derive_getters::Getters)]
-pub struct BFGS {
+pub struct DFP {
     approx_inv_hessian: DMatrix<Floating>,
     x: DVector<Floating>,
     k: usize,
@@ -11,7 +11,7 @@ pub struct BFGS {
     identity: DMatrix<Floating>,
 }
 
-impl BFGS {
+impl DFP {
     pub fn next_iterate_too_close(&self) -> bool {
         match self.s_norm() {
             Some(s) => s < &self.tol,
@@ -27,7 +27,7 @@ impl BFGS {
     pub fn new(tol: Floating, x0: DVector<Floating>) -> Self {
         let n = x0.len();
         let identity = DMatrix::identity(n, n);
-        BFGS {
+        DFP {
             approx_inv_hessian: identity.clone(),
             x: x0,
             k: 0,
@@ -39,7 +39,7 @@ impl BFGS {
     }
 }
 
-impl ComputeDirection for BFGS {
+impl ComputeDirection for DFP {
     fn compute_direction(
         &mut self,
         eval: &FuncEvalMultivariate,
@@ -48,7 +48,7 @@ impl ComputeDirection for BFGS {
     }
 }
 
-impl LineSearchSolver for BFGS {
+impl LineSearchSolver for DFP {
     fn k(&self) -> &usize {
         &self.k
     }
@@ -65,10 +65,10 @@ impl LineSearchSolver for BFGS {
         // either the gradient is small or the difference between the iterates is small
         // eval.g().norm() < self.tol || self.next_iterate_too_close()
         if self.next_iterate_too_close() {
-            warn!(target: "bfgs","Minimization completed: next iterate too close");
+            warn!(target: "DFP","Minimization completed: next iterate too close");
             true
         } else if self.gradient_next_iterate_too_close() {
-            warn!(target: "bfgs","Minimization completed: gradient next iterate too close");
+            warn!(target: "DFP","Minimization completed: gradient next iterate too close");
             true
         } else {
             eval.g().norm() < self.tol
@@ -111,23 +111,19 @@ impl LineSearchSolver for BFGS {
             return Ok(());
         }
 
-        // Equation 2.21 in [Nocedal, J., & Wright, S. J. (2006). Numerical optimization.]
-        let ys = &y.dot(&s);
-        let rho = 1.0 / ys;
-        let w_a = &s * &y.transpose();
-        // let w_b = &y * &s.transpose();
-        let w_b = w_a.transpose();
-        let innovation = &s * &s.transpose();
-        let left_term = self.identity() - (w_a * rho);
-        let right_term = self.identity() - (w_b * rho);
-        self.approx_inv_hessian =
-            (left_term * &self.approx_inv_hessian * right_term) + innovation * rho;
+        // DFP update
+        let ss = &s * s.transpose();
+        let yy = &y * y.transpose();
+        let sy = s.dot(&y);
+        let yhy = y.dot(&(&self.approx_inv_hessian * &y));
+        self.approx_inv_hessian +=
+            ss / sy - (&self.approx_inv_hessian * &yy * &self.approx_inv_hessian) / yhy;
 
         Ok(())
     }
 }
 
-mod test_bfgs {
+mod test_DFP {
     use super::*;
     #[test]
     fn test_outer() {
@@ -138,7 +134,7 @@ mod test_bfgs {
     }
 
     #[test]
-    pub fn bfgs_morethuente() {
+    pub fn DFP_morethuente() {
         std::env::set_var("RUST_LOG", "info");
 
         let tracer = Tracer::default()
@@ -158,7 +154,7 @@ mod test_bfgs {
         // pnorm descent builder
         let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut gd = BFGS::new(tol, x_0);
+        let mut gd = DFP::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;
@@ -187,7 +183,7 @@ mod test_bfgs {
     }
 
     #[test]
-    pub fn bfgs_backtracking() {
+    pub fn DFP_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
         let tracer = Tracer::default()
@@ -209,7 +205,7 @@ mod test_bfgs {
         // pnorm descent builder
         let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut gd = BFGS::new(tol, x_0);
+        let mut gd = DFP::new(tol, x_0);
 
         // Minimization
         let max_iter_solver = 1000;

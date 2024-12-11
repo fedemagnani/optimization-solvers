@@ -176,7 +176,7 @@ impl LineSearch for MoreThuenteB {
         x_k: &DVector<Floating>,         // current iterate
         eval_x_k: &FuncEvalMultivariate, // function evaluation at x_k
         direction_k: &DVector<Floating>, // direction of the ray along which we are going to search
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate, // oracle
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate, // oracle
         max_iter: usize, // maximum number of iterations during line search (if direction update is costly, set this high to perform more exact line search)
     ) -> Floating {
         let mut use_modified_updating = false;
@@ -337,7 +337,7 @@ mod morethuente_test {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
-        let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
+        let mut f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
             let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
             let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g).into()
@@ -360,7 +360,12 @@ mod morethuente_test {
             }
             let direction = -eval.g();
             let t = <MoreThuenteB as LineSearch>::compute_step_len(
-                &mut ls, &iterate, &eval, &direction, &f_and_g, max_iter,
+                &mut ls,
+                &iterate,
+                &eval,
+                &direction,
+                &mut f_and_g,
+                max_iter,
             );
             //we perform the update
             iterate += t * direction;

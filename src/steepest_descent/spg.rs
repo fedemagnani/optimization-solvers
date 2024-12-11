@@ -28,7 +28,7 @@ impl SpectralProjectedGradient {
     pub fn new(
         grad_tol: Floating,
         x0: DVector<Floating>,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         lower_bound: DVector<Floating>,
         upper_bound: DVector<Floating>,
     ) -> Self {
@@ -107,7 +107,7 @@ impl LineSearchSolver for SpectralProjectedGradient {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
@@ -154,7 +154,7 @@ mod spg_test {
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1e9;
-        let f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
+        let mut f_and_g = |x: &DVector<Floating>| -> FuncEvalMultivariate {
             let f = 0.5 * (x[0].powi(2) + gamma * x[1].powi(2));
             let g = DVector::from(vec![x[0], gamma * x[1]]);
             (f, g).into()
@@ -172,7 +172,8 @@ mod spg_test {
         // Gradient descent builder
         let tol = 1e-12;
         let x_0 = DVector::from(vec![180.0, 152.0]);
-        let mut gd = SpectralProjectedGradient::new(tol, x_0, &f_and_g, lower_bounds, upper_oounds);
+        let mut gd =
+            SpectralProjectedGradient::new(tol, x_0, &mut f_and_g, lower_bounds, upper_oounds);
 
         // Minimization
         let max_iter_solver = 10000;

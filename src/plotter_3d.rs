@@ -38,7 +38,7 @@ impl Plotter3d {
     }
     pub fn append_plot(
         mut self,
-        oracle: &impl Fn(&DVector<f64>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<f64>) -> FuncEvalMultivariate,
         title: &str,
         opacity: f64,
     ) -> Self {
@@ -64,8 +64,8 @@ impl Plotter3d {
     }
     pub fn append_scatter_points(
         mut self,
-        // f: &impl Fn(f64, f64) -> f64,
-        oracle: &impl Fn(&DVector<f64>) -> FuncEvalMultivariate,
+        // f: & mut impl FnMut(f64, f64) -> f64,
+        oracle: &mut impl FnMut(&DVector<f64>) -> FuncEvalMultivariate,
         points: &[DVector<f64>],
         title: &str,
     ) -> Self {

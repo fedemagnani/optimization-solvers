@@ -56,7 +56,7 @@ impl LineSearchSolver for GradientDescent {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: & mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {

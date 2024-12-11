@@ -107,7 +107,7 @@ impl LineSearchSolver for BFGSB {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate,
-        oracle: &impl Fn(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
@@ -115,7 +115,7 @@ impl LineSearchSolver for BFGSB {
             self.xk(),
             eval_x_k,
             &direction,
-            &oracle,
+            oracle,
             max_iter_line_search,
         );
 
