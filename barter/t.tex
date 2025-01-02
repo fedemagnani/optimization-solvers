@@ -1,0 +1,125 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\begin{document}
+\title{The convexity of the barter exchange problem}
+\author{Federico Magnani}
+\date{}
+\maketitle
+In a universe of $n$ assets and $m$ trading agents, we consider a barter exchange problem (Arrow - Debreu exchange market) in which the $j$-th agent has an initial endowment of $\Delta_{j}\geq0$ units of the $i$-th asset and he is willing to sell it for at least $\Lambda_{j}\geq0$ units of asset $k$ according to a certain utility function. Of course, the more favorable the exchange rate, the higher is the utility of the trader. To capture this, one could consider the utility function of the $j$-th agent as 
+\begin{align*}
+    U_j(x_{j}, y_{j}) = y_{j}-x_{j} * \frac{\Lambda_{j}}{\Delta_{j}} - \delta(x_{j}|[0,\Delta_{j}]) - \delta(y_{j}|\mathbb{R}^+)
+\end{align*}
+Where $x_{j}$ is the variable representing the amount of asset $i$ that the $j$-th agent is willing to sell, $y_{j}$ is the amount of asset $k$ that the $j$-th agent is willing to buy and the indicator functions are used to encode the natural constraints regarding the limited expenditure of asset $i$ capped by the initial endowment $\Delta_{j}$ (i.e. $- \delta(x_{j}|[0,\Delta_{j}])$) and the non-negative amount of asset $k$ that the agent is willing to buy (i.e. $- \delta(y_{j}|\mathbb{R}^+)$). Notice that $\text{dom}(U_j)=[0,\Delta_{j}]\times\mathbb{R}^+$ is an unbounded hyper-rectangle describing the set of trades which satisfy the natural trading constraints but that they might not be desirable for the agent when associated with a negative utility (lie the trade $(\Delta_{j}, 0)$). On the other hand, the zero-upper level set of this function 
+\begin{align*}
+    U^{[0]}_j = \{ (x_{j}, y_{j}) \in \mathbb{R}^2 \;|\; y_{j}-x_{j} * \frac{\Lambda_{j}}{\Delta_{j}} \geq 0, \;  0\leq x_{j}\leq\Delta_{j},\; y_{j}\geq 0\}
+\end{align*}
+denotes the set of trades which are acceptable for the agent because the effective exchange rate is at least the desired one, indeed for a positive supplied amount $x_{j}>0$, one has that 
+\begin{align*}
+    x_{j}>0 \;\land \;(x_{j}, y_{j}) \in U^{[0]}_j \iff \frac{y_{j}}{x_{j}}\geq \frac{\Lambda_{j}}{\Delta_{j}}\;\land \;  0< x_{j}\leq\Delta_{j}\;\land\; y_{j}\geq 0
+\end{align*}
+Moreover, notice also that the zero-trade is always acceptable for the agent, i.e. $(0,0)\in U^{[0]}_j$, being a trade associated with a utility of zero. Of course, in an unconstrained setting, the optimal trade would be $(0,\infty)$ being $U_j$ unbounded from above. So now it's time to encode the constraints according to which the sum of the amounts collected by all the agents must be lower or equal to the sum of the amounts supplied by all the agents. To do this, one has to project in higher dimension the scalar amounts spent and collected by the agents. In particular, one can build the matrix $M_x\in\mathcal{M}(n,m)$ such that $(M_x)_{i,j}=1$ if the
+$i$-th asset is sold by the $j$-th agent and $(M_x)_{i,j}=0$ otherwise. 
+In other words, denoting with $e_{xj}\in\mathbb{R}^n$ the unit vector of the canonical basis which is one if the $i$-th asset is sold by the $j$-th agent and zero otherwise, one has that 
+\begin{align*}
+    M_x = \begin{bmatrix}
+        | &  & |\\
+        e_{x1} & \dots & e_{xm}\\
+        | & & |
+    \end{bmatrix}
+\end{align*}
+
+Similarly, one can build the matrix $M_y\in\mathcal{M}(n,m)$ such that $(M_y)_{i,j}=1$ if the $i$-th asset is bought by the $j$-th agent and $(M_y)_{k,j}=0$ otherwise. 
+\begin{align*}
+    M_y = \begin{bmatrix}
+        | &  & |\\
+        e_{y1} & \dots & e_{ym}\\
+        | & & |
+        \end{bmatrix}
+\end{align*}
+
+As a result, stacking the amounts sold by each agent in the vector $x=(x_1,\dots,x_m)$ and the amounts bought by each agent in the vector $y=(y_1,\dots,y_m)$, the constraint can be written as
+\begin{align*}
+    M_x x \succeq M_y  y
+\end{align*}
+Where the generalized inequality means that $M_x x - M_y  y \in\mathbb{R}^n_+$
+
+In other words, the goal is to find the optimal trades which solve the following optimization problem
+\begin{align*}
+    \sup_{\{x, y\}} \quad& \sum_{j=1}^m U_j(x_{j}, y_{j})\\ 
+    \text{s.t.} \quad& M_x x \succeq M_y  y\\
+    \quad& x_j = \langle e_{xj}, x \rangle &\quad \forall j=1,\dots,m\\
+    \quad& y_j = \langle e_{yj}, y \rangle &\quad \forall j=1,\dots,m\\
+    \quad& (x_{j}, y_{j}) \in U^{[0]}_j &\quad \forall j=1,\dots,m
+\end{align*}
+
+In explicit form, this corresponds to 
+\begin{align*}
+    \sup_{\{x, y\}} \quad& \sum_{j=1}^m y_{j}-x_{j} * \frac{\Lambda_{j}}{\Delta_{j}}\\ 
+    \text{s.t.} \quad& M_x x \succeq M_y  y\\
+    \quad& x_j = \langle e_{xj}, x \rangle &\quad \forall j=1,\dots,m\\
+    \quad& y_j = \langle e_{yj}, y \rangle &\quad \forall j=1,\dots,m\\
+    \quad& y_{j}-x_{j} * \frac{\Lambda_{j}}{\Delta_{j}}\geq0 &\quad \forall j=1,\dots,m\\
+    \quad& y_{j} \geq 0 &\quad \forall j=1,\dots,m\\
+    \quad& x_{j} \geq 0 &\quad \forall j=1,\dots,m\\
+    \quad& x_{j} \leq \Delta_{j} &\quad \forall j=1,\dots,m
+\end{align*}
+Now call $\Delta = (\Delta_1,\dots,\Delta_m)$, $\Lambda = (\Lambda_1,\dots,\Lambda_m)$ so that $\text{diag}(\Delta)^{-1} \Lambda$ is the vector of minimal exchange rates for each agent. The optimization problem can be rewritten as
+\begin{align*}
+    \sup_{\{x, y\}} \quad& \langle \text{\textbf{1}}, y- \text{diag}(\Delta)^{-1} \text{diag}(\Lambda) x \rangle\\
+    \text{s.t.} \quad& M_x x \succeq M_y  y\\
+    \quad&  y \succeq\text{diag}(\Delta)^{-1} \text{diag}(\Lambda) x\\
+    \quad& x \in \mathbb{R}^m_+,\\ 
+    \quad&y \in \mathbb{R}^m_+\\
+    \quad& x \preceq \Delta
+\end{align*}
+Moreover, calling $z=y- \text{diag}(\Delta)^{-1} \text{diag}(\Lambda) x$ one can convert the barter exchange problem to an equivalent linear program 
+\begin{equation}\label{eq:barter}
+\begin{aligned}
+        \sup_{\{x, y, z\}} \quad& \langle (\text{\textbf{0}},\text{\textbf{0}},\text{\textbf{1}}), (x,y,z) \rangle\\
+        \text{s.t.} 
+        \quad& \begin{bmatrix}\text{diag}(\Delta)^{-1} \text{diag}(\Lambda) , -I, I\end{bmatrix} \begin{bmatrix}
+            x\\
+            y\\
+            z
+        \end{bmatrix}=\text{\textbf{0}}\\
+        \quad&\begin{bmatrix}
+            -M_x & M_y & \text{\textbf{0}}\\
+            I & \text{\textbf{0}} & \text{\textbf{0}}
+        \end{bmatrix} \begin{bmatrix}
+            x\\
+            y\\
+            z
+        \end{bmatrix} \preceq \begin{bmatrix}
+            \text{\textbf{0}}\\
+            \Delta
+        \end{bmatrix}\\
+        \quad& x \in \mathbb{R}^m_+,\\
+        \quad& y \in \mathbb{R}^m_+,\\
+        \quad& z \in \mathbb{R}^m_+
+\end{aligned}
+\end{equation}
+Indeed, by calling 
+\begin{align*}
+    &t=(x,y,z)\in\mathbb{R}^{3m}\\
+    &c=(\text{\textbf{0}},\text{\textbf{0}},\text{\textbf{1}}) \in \mathbb{R}^{3m}\\
+    &A=\begin{bmatrix}\text{diag}(\Delta)^{-1} \text{diag}(\Lambda) , -I, I\end{bmatrix} \in \mathbb{R}^{m\times 3m}\\
+    &b=\text{\textbf{0}} \in \mathbb{R}^m\\
+    &G=\begin{bmatrix}
+        -M_x & M_y & \text{\textbf{0}}\\
+        I & \text{\textbf{0}} & \text{\textbf{0}}
+    \end{bmatrix} \in \mathbb{R}^{(n+m)\times 3m}
+    &h=\begin{bmatrix}
+        \text{\textbf{0}}\\
+        \Delta
+    \end{bmatrix} \in \mathbb{R}^{n+m}
+\end{align*}
+one has that problem \eqref{eq:barter} can be written as
+\begin{align*}
+    \sup_{t} \quad& \langle c, t \rangle\\
+    \text{s.t.} \quad& A t = b\\
+    \quad& G t \preceq h\\
+    \quad&t\succeq 0
+\end{align*}
+resembling the standard form of a linear program.
+\end{document}
