@@ -39,6 +39,7 @@ Distributed Parameter PDE-Constrained Inverse Problems", PhD Thesis, University 
 - Moré-Thuente line search algorithm: [Jorge J. Moré and David J. Thuente. 1994. Line search algorithms with guaranteed sufficient decrease. ACM Trans. Math. Softw. 20, 3 (Sept. 1994), 286–307.](https://www.ii.uib.no/~lennart/drgrad/More1994.pdf)
 - NEOS Guide: [NEOS Guide](https://neos-guide.org/guide/algorithms/)
 - Online scaling gradient methods (OSGM): [Gao, W., Chu, Y. C., Ye, Y., & Udell, M. (2024). Gradient Methods with Online Scaling. arXiv preprint arXiv:2411.01803](https://arxiv.org/pdf/2411.01803)
+- Proximal algorithms: [Neal Parikh and Stephen Boyd. 2014. Proximal Algorithms. Found. Trends Optim. 1, 3 (January 2014), 127–239.](https://web.stanford.edu/~boyd/papers/pdf/prox_algs.pdf)
 - Survey of existing solvers for bound-constrained optimization: [Tröltzsch, A. (2007). Benchmarking of bound-constrained optimization software](https://www.cerfacs.fr/algor/reports/2007/WN_PA_07_143.pdf) 
 - Survey of existing solvers for bound-constrained optimization: [Birgin, E.G., Gentil, J.M. Evaluating bound-constrained minimization software. Comput Optim Appl 53, 347–373 (2012)](https://www.ime.usp.br/%7Eegbirgin/publications/bg-bdseval.pdf)
 - Spectral Projected Gradient Method (ACM Algo 813): [Birgin, Ernesto & Martínez, José Mario & Raydan, Marcos. (2014). Spectral Projected Gradient Methods: Review and Perspectives. Journal of Statistical Software. 60. 1-21. 10.18637/jss.v060.i03.](https://www.ime.usp.br/~egbirgin/publications/bmr5.pdf)
@@ -54,4 +55,5 @@ Distributed Parameter PDE-Constrained Inverse Problems", PhD Thesis, University 
 -  Subtractive cancellation errors during computation: https://tobydriscoll.net/fnc-julia/intro/conditioning.html
 - Painless conjugate gradient: https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 - A note on preconditioning: https://www.math.iit.edu/~fass/477577_Chapter_16.pdf
+- First order optimality conditions in constrained optimization: https://www.mit.edu/~gfarina/2024/67220s24_L02_first_order_optimality_conditions/L02.pdf
 ![optim_family](assets/optim_family.png)
