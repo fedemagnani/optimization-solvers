@@ -30,7 +30,7 @@ impl Univ2 {
             gamma,
             liquidity: (r0 * r1).sqrt(),
             liquidity_grad: Vector2::new(0.5 * (r1 / r0).sqrt(), 0.5 * (r0 / r1).sqrt()),
-            portfolio_grad: Vector2::new(0.0, 0.0).into(),
+            portfolio_grad: Vector2::new(0.0, 0.0),
             portoflio_hessian: Matrix2::new(0.0, 0.0, 0.0, 0.0),
         }
     }
@@ -180,72 +180,50 @@ fn main() {
     info!("Start binaries");
     // we mock the pools of the optimization
     let fee_factor = 0.997;
-    let assets_n = 100;
+    let assets_n = 2;
     let pools_m = 1000;
 
     let mut univ2_pools = vec![];
-    for _ in 0..pools_m {
-        let r0 = 1e6 * rng.gen::<f64>() + 1e12 * rng.gen::<f64>();
-        let r1 = 1e6 * rng.gen::<f64>() + 1e12 * rng.gen::<f64>();
-        let asset0 = rng.gen::<usize>() % assets_n;
-        let mut asset1 = rng.gen::<usize>() % assets_n;
-        if asset1 == asset0 {
-            asset1 = (asset1 + 1) % assets_n;
-        }
+    // for _ in 0..pools_m {
+    //     let r0 = 1e6 * rng.gen::<f64>() + 1e12 * rng.gen::<f64>();
+    //     let r1 = 1e6 * rng.gen::<f64>() + 1e12 * rng.gen::<f64>();
+    //     let asset0 = rng.gen::<usize>() % assets_n;
+    //     let mut asset1 = rng.gen::<usize>() % assets_n;
+    //     if asset1 == asset0 {
+    //         asset1 = (asset1 + 1) % assets_n;
+    //     }
 
-        let gamma = fee_factor;
-        let pool = Univ2::new(r0, r1, asset0, asset1, gamma);
-        univ2_pools.push(pool);
-    }
-    println!("pool1: {:?}", univ2_pools[0]);
+    //     let gamma = fee_factor;
+    //     let pool = Univ2::new(r0, r1, asset0, asset1, gamma);
+    //     univ2_pools.push(pool);
+    // }
+    // println!("pool1: {:?}", univ2_pools[0]);
 
-    // let pool_1_asset0 = 0;
-    // let pool_1_asset1 = 1;
-    // let pool_1 = Univ2::new(1e6, 1e6, pool_1_asset0, pool_1_asset1, fee_factor);
-    // let pool_2_asset0 = 0;
-    // let pool_2_asset1 = 1;
-    // let pool_2 = Univ2::new(1e3, 2e3, pool_2_asset0, pool_2_asset1, fee_factor);
-    // univ2_pools.push(pool_1.clone());
-    // univ2_pools.push(pool_2.clone());
+    let pool_1_asset0 = 0;
+    let pool_1_asset1 = 1;
+    let pool_1 = Univ2::new(1e0, 1e0, pool_1_asset0, pool_1_asset1, fee_factor);
+    let pool_2_asset0 = 0;
+    let pool_2_asset1 = 1;
+    let pool_2 = Univ2::new(1e0, 1e7, pool_2_asset0, pool_2_asset1, fee_factor);
+    univ2_pools.push(pool_1.clone());
+    univ2_pools.push(pool_2.clone());
 
     // // Below a L-ininfity regularization on reserves vector (divide by the max infinity norm of reserves)
     // let reg_fac = univ2_pools
     //     .iter()
     //     .fold(0.0f64, |acc, pool| acc.max(pool.r0.max(pool.r1)));
 
-    // // Below a L-2 regularization on reserves vector (divide by the max euclidean norm of reserves)
-    // let reg_fac = univ2_pools.iter().fold(0.0f64, |acc, pool| {
-    //     acc.max((pool.r0.powi(2) + pool.r1.powi(2)).sqrt())
-    // });
+    // let reg_fac = 1.;
 
-    // // Below a L-infinity regularization on liquidity vector (divide by the infinity norm of the vector of liquidities)
-    // let reg_fac = univ2_pools
+    // for the optimization, we downscale all the reserves so that they are in (0,1]. NOtice that the arbitrage function is positive homogenous both w.r.t. prices and reserves. Thus from a mathematical standpoint, dividing all the reserves by the same regularization factor is equivalent to dividing the arbitrage function by the same factor. However, from a computational perspective, working with numbers in (0,1] is more stable, so it is preferable to downscale the reserves. The lower is the magnitude of the reserve, the higher is the variable value
+    // let mut down_univ2_pools = univ2_pools
     //     .iter()
-    //     .fold(0.0f64, |acc, pool| acc.max(*pool.liquidity()));
-
-    // // //Below a L-2 regularization on liquidity vector (divide by the euclidean norm of the vector of liquidities)
-    // let reg_fac = univ2_pools
-    //     .iter()
-    //     .fold(0.0f64, |acc, pool| acc + pool.liquidity().powi(2))
-    //     .sqrt();
-
-    // // Below a regularization factor based on the mean of the liquidity vector
-    // let reg_fac = univ2_pools
-    //     .iter()
-    //     .fold(0.0f64, |acc, pool| acc + pool.liquidity())
-    //     / univ2_pools.len() as f64;
-
-    // // Below a regularization factor based on the mean of the reserves vector
-    // let reg_fac = univ2_pools
-    //     .iter()
-    //     .fold(0.0f64, |acc, pool| acc + pool.r0 + pool.r1)
-    //     / (2. * univ2_pools.len() as f64);
-
-    let reg_fac = 1.;
+    //     .cloned()
+    //     .map(|x| Univ2::new(x.r0 / reg_fac, x.r1 / reg_fac, x.asset0, x.asset1, x.gamma))
+    //     .collect::<Vec<Univ2>>();
 
     // Setting up the oracle
-    let min_amount_out = f64::EPSILON;
-    let mut f_and_g = |v: &DVector<Floating>| -> FuncEvalMultivariate {
+    let f_and_g = |v: &DVector<Floating>| -> FuncEvalMultivariate {
         // we define as utility function sum -ln(vi -ci) for i=1,2,...
         let (mut image, mut gradient, mut hessian) = univ2_pools
             .par_iter_mut()
@@ -258,16 +236,6 @@ fn main() {
                     )
                 },
                 |(mut acc, mut g, mut hes), pool| {
-                    // for p in univ2_pools.iter_mut() {
-                    //     p.r0 /= reg_fac;
-                    //     p.r1 /= reg_fac;
-                    // }
-
-                    // //Regularize pool reserves
-                    // let mut pool = pool.clone();
-                    // pool.r0 /= reg_fac;
-                    // pool.r1 /= reg_fac;
-
                     let mut eval = pool.find_arb(v);
                     let image = eval.f();
                     let gradient = eval.g();
@@ -288,10 +256,6 @@ fn main() {
                 },
                 |(acc1, g1, h1), (acc2, g2, h2)| (acc1 + acc2, g1 + g2, h1 + h2),
             );
-        // Instead of regularizing reserves (costly) we leverage on the positive homogenous of the find arbitrage
-        image /= reg_fac;
-        gradient /= reg_fac;
-        hessian /= reg_fac;
 
         let mut image_sum = 0.0;
         let mut gradient_sum = DVector::zeros(assets_n);
@@ -304,148 +268,23 @@ fn main() {
         }
         image += image_sum;
         gradient += gradient_sum;
-        hessian += reg_fac * hessian_sum;
+        hessian += hessian_sum;
 
         FuncEvalMultivariate::new(image, gradient).with_hessian(hessian)
     };
 
     // Setting up the parameters for main solver
-    let max_iter = 1000;
-    let max_iter_line_search: usize = 100;
-    let grad_tol = 1e-12;
-    let mut x0 = DVector::from_vec(vec![10.; assets_n]);
-    x0[0] = 1.;
-    x0[1] = 1.;
+
+    let mut x0 = DVector::from_vec(vec![1.; assets_n]);
 
     let upper_bound = DVector::from_vec(vec![f64::INFINITY; assets_n]);
-    let lower_bound = DVector::from_vec(vec![f64::EPSILON.sqrt(); assets_n]);
-    // let lower_bound = DVector::from_vec(
-    //     prices
-    //         .clone()
-    //         .into_iter()
-    //         .map(|x| x + f64::EPSILON)
-    //         .collect(),
-    // );
-
-    // // Setting up the line search
-    // // let mut ls = BackTrackingB::new(1e-4, 0.5, lower_bound.clone(), upper_bound.clone());
-    // let mut ls = GLLQuadratic::new(1e-4, 7).with_sigmas(0.1, 0.9);
-    // // let mut ls = MoreThuenteB::new(assets_n)
-    // //     .with_lower_bound(lower_bound.clone())
-    // //     .with_upper_bound(upper_bound.clone());
-
-    // // Setting up the solver
-    // // let mut gd: SpectralProjectedGradient = SpectralProjectedGradient::new(
-    // //     grad_tol,
-    // //     x0.clone(),
-    // //     &mut f_and_g,
-    // //     lower_bound.clone(),
-    // //     upper_bound.clone(),
-    // // );
-    // // let mut gd = ProjectedGradientDescent::new(grad_tol, x0, lower_bound, upper_bound);
-    // // let mut gd: BFGSB = BFGSB::new(grad_tol, x0, lower_bound.clone(), upper_bound.clone());
-    // let mut gd: SR1B = SR1B::new(grad_tol, x0, lower_bound.clone(), upper_bound.clone());
-    // // let mut gd: BroydenB = BroydenB::new(grad_tol, x0, lower_bound.clone(), upper_bound.clone());
-    // // let mut gd: DFPB = DFPB::new(grad_tol, x0, lower_bound.clone(), upper_bound.clone());
-
-    // // let mut gd: ProjectedNewton =
-    // //     ProjectedNewton::new(grad_tol, x0, lower_bound.clone(), upper_bound.clone());
-    // // let mut gd: SpectralProjectedNewton = SpectralProjectedNewton::new(
-    // //     grad_tol,
-    // //     x0,
-    // //     &mut f_and_g,
-    // //     lower_bound.clone(),
-    // //     upper_bound.clone(),
-    // // );
-
-    // // We define a callback to store iterates and function evaluations
-    // // let mut iterates = vec![];
-    // let mut condition_numbers = vec![];
-    // let mut store_iterates = |s: &SR1B| {
-    //     // iterates.push(s.xk().clone());
-    //     // //we compute also the condition number of the bfgs matrix
-    //     // let eig = s.approx_inv_hessian().clone().eigenvalues();
-    //     // let Some(eig) = eig else {
-    //     //     return;
-    //     // };
-    //     // let (max_eig, min_eig) = eig.iter().fold((0.0f64, f64::INFINITY), |acc, x| {
-    //     //     (acc.0.max(x.abs()), acc.1.min(x.abs()))
-    //     // });
-    //     // let condition_number = max_eig / min_eig;
-    //     // condition_numbers.push(condition_number);
-    // };
-
-    // info!("Starting optimization");
-    // // Running the solver
-    // let res = gd.minimize(
-    //     &mut ls,
-    //     &mut f_and_g,
-    //     max_iter,
-    //     max_iter_line_search,
-    //     Some(&mut store_iterates),
-    // );
-
-    // // info!("Function eval: {:?}", f_and_g(gd.xk()));
-    // let iterate = gd.xk();
-    // info!("Iterate: {:?}", iterate);
-    // info!("reg_fac: {:?}", reg_fac);
-    // println!("Image: {:?}", f_and_g(&iterate).f());
-    // // let iterate = iterate * reg_fac;
-
-    // info!(
-    //     "Infinity norm projected gradient: {:?}",
-    //     gd.projected_gradient(&mut f_and_g(&iterate))
-    //         .infinity_norm()
-    // );
-    // info!(
-    //     "Max condition number: {:?}",
-    //     condition_numbers.iter().fold(0.0f64, |acc, x| acc.max(*x))
-    // );
-    // info!(
-    //     "Min condition number: {:?}",
-    //     condition_numbers
-    //         .iter()
-    //         .fold(f64::INFINITY, |acc, x| acc.min(*x))
-    // );
-    // info!(
-    //     "Mean condition number: {:?}",
-    //     condition_numbers.iter().fold(0.0f64, |acc, x| acc + *x) / condition_numbers.len() as f64
-    // );
-
-    // // // Plotting the iterates
-    // // let n = 1000;
-
-    // // let x_min = f64::EPSILON.sqrt();
-    // // let x_max = 10.;
-    // // let y_min = f64::EPSILON.sqrt();
-    // // let y_max = 10.;
-    // // let plotter = Plotter3d::new(x_min, x_max, y_min, y_max, n)
-    // //     .append_plot(&mut f_and_g, "Objective function", 0.5)
-    // //     .append_scatter_points(&mut f_and_g, &iterates, "Iterates")
-    // //     .set_layout_size(1600, 1000);
-    // // plotter.build("t.html");
-
-    // let y = univ2_pools
-    //     .par_iter_mut()
-    //     .fold(
-    //         || DVector::zeros(assets_n),
-    //         |mut acc, pool| {
-    //             let arb = pool.find_arb(&iterate);
-    //             acc += arb.g();
-    //             acc
-    //         },
-    //     )
-    //     .reduce(|| DVector::zeros(assets_n), |acc1, acc2| acc1 + acc2);
-    // info!("Net trade vector: {:?}", y);
-    // let neg = y.iter().filter(|x| x < &&0.).count();
-
-    // info!("NEGATIVE NET AMOUNTS: {:?}", neg);
+    let lower_bound = DVector::from_vec(vec![f64::EPSILON; assets_n]);
 
     // L-BFGS-B
     let mut lbfgsb = Lbfgsb::new(assets_n);
     for (i, (l, u)) in lower_bound.iter().zip(upper_bound.iter()).enumerate() {
         lbfgsb.set_lower_bound(i, *l);
-        // lbfgsb.set_upper_bound(i, *u);
+        lbfgsb.set_upper_bound(i, *u);
     }
     lbfgsb.set_pgtol(1e-18);
     lbfgsb.set_factr(1e-18);
@@ -453,8 +292,7 @@ fn main() {
     lbfgsb.set_verbosity(0);
     lbfgsb.set_m(15);
 
-    let res = lbfgsb.minimize(f_and_g, &mut x0);
-    // println!("Res: {:?}", res);
+    let _ = lbfgsb.minimize(f_and_g, &mut x0);
     let y = univ2_pools
         .par_iter_mut()
         .fold(
@@ -470,9 +308,6 @@ fn main() {
     // we count how many negaive net trades we have
     let neg = y.iter().filter(|x| x < &&0.).count();
     println!("NEGATIVE NET AMOUNTS: {:?}", neg);
-    // println!("optimal point: {:?}", x0);
-
-    // // println!("optimal point: {:?}", x0);
     println!("Net trade vector: {:?}", y);
 
     let mean_price = x0.iter().fold(0.0, |acc, x| acc + x) / assets_n as f64;
@@ -480,6 +315,5 @@ fn main() {
         x0.iter().fold(0.0, |acc, x| acc + (x - mean_price).powi(2)) / (assets_n - 1) as f64;
     println!("Mean price: {:?}", mean_price);
     println!("Variance price: {:?}", variance_price);
-    // // println!("Prices: {:?}", prices);
-    // // println!("f_and_g: {:?}", f_and_g(&x0));
+    println!("Price vector: {:?}", x0);
 }

@@ -58,23 +58,17 @@ impl Univ2 {
         let assets_n = v.len();
         let v0 = v[self.asset0];
         let v1 = v[self.asset1];
+        let v = [v0, v1];
 
         let g_liq = self.liquidity_grad();
 
-        let (p0, p1) = {
-            let v1_v0 = v1 / v0;
-            let g1_gammag0 = g_liq[1] / (self.gamma * g_liq[0]);
-            let gammag1_g0 = self.gamma * g_liq[1] / g_liq[0];
-            if (gammag1_g0 < v1_v0) && (v1_v0 < g1_gammag0) {
-                return FuncEvalMultivariate::new(0.0, DVector::zeros(assets_n))
-                    .with_hessian(DMatrix::zeros(assets_n, assets_n));
-            }
-            if g1_gammag0 < v1_v0 {
-                (v0 / self.gamma, v1)
-            } else {
-                (v0, v1 / self.gamma)
-            }
-        };
+        let rescaling_factor = v
+            .iter()
+            .zip(g_liq.iter())
+            .fold(0.0f64, |acc, (v, g)| acc.max(v / g));
+
+        let p0 = (g_liq[0]).min(v0 / (self.gamma * rescaling_factor));
+        let p1 = (g_liq[1]).min(v1 / (self.gamma * rescaling_factor));
 
         let p = DVector::from_vec(vec![p0, p1]);
         self.update_portfolio_grad(&p);
@@ -105,11 +99,6 @@ impl Univ2 {
 
         FuncEvalMultivariate::new(image, gradient).with_hessian(hessian)
     }
-}
-
-#[test]
-fn system_solve() {
-    // the kernel of the liquidity hessian might define the aritrage free price
 }
 
 #[test]
@@ -180,8 +169,8 @@ fn main() {
     info!("Start binaries");
     // we mock the pools of the optimization
     let fee_factor = 0.997;
-    let assets_n = 100;
-    let pools_m = 1000;
+    let assets_n = 10;
+    let pools_m = 30;
 
     let mut univ2_pools = vec![];
     for _ in 0..pools_m {
@@ -235,7 +224,7 @@ fn main() {
     //     .fold(0.0f64, |acc, pool| acc + pool.liquidity())
     //     / univ2_pools.len() as f64;
 
-    // // Below a regularization factor based on the mean of the reserves vector
+    // Below a regularization factor based on the mean of the reserves vector
     // let reg_fac = univ2_pools
     //     .iter()
     //     .fold(0.0f64, |acc, pool| acc + pool.r0 + pool.r1)
