@@ -1,13 +1,12 @@
 use nalgebra::{DMatrix, DVector};
 use optimization_solvers::{
-    BackTracking, FuncEvalMultivariate, GradientDescent, LineSearchSolver, MoreThuente, Plotter3d,
-    Tracer, BFGS,
+    BackTracking, FuncEvalMultivariate, GradientDescent, LineSearchSolver, Plotter3d, Tracer,
 };
 
 fn main() {
-    // Setting up log verbosity and tracer.
+    // Setting up log verbosity and _.
     std::env::set_var("RUST_LOG", "debug");
-    let tracer = Tracer::default().with_normal_stdout_layer().build();
+    let _ = Tracer::default().with_normal_stdout_layer().build();
     // Setting up the oracle
     let matrix = DMatrix::from_vec(2, 2, vec![100., 0., 0., 100.]);
     let mut f_and_g = |x: &DVector<f64>| -> FuncEvalMultivariate {

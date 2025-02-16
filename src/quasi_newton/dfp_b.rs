@@ -115,7 +115,7 @@ impl LineSearchSolver for DFPB {
         let step = line_search.compute_step_len(
             self.xk(),
             eval_x_k,
-            &direction,
+            direction,
             oracle,
             max_iter_line_search,
         );
@@ -152,7 +152,8 @@ impl LineSearchSolver for DFPB {
     }
 }
 
-mod test_DFPB {
+#[cfg(test)]
+mod test_dfpb {
     use super::*;
     #[test]
     fn test_outer() {
@@ -163,10 +164,10 @@ mod test_DFPB {
     }
 
     #[test]
-    pub fn DFPB_backtracking() {
+    pub fn dfpb_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.;

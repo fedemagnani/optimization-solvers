@@ -113,7 +113,7 @@ impl LineSearchSolver for ProjectedNewton {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
-        oracle: & mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
@@ -140,13 +140,14 @@ impl LineSearchSolver for ProjectedNewton {
     }
 }
 
+#[cfg(test)]
 mod projected_newton_tests {
     use super::*;
     #[test]
     pub fn constrained_grad_desc_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
@@ -162,7 +163,6 @@ mod projected_newton_tests {
         let upper_oounds = DVector::from_vec(vec![f64::INFINITY, f64::INFINITY]);
         // Linesearch builder
         let alpha = 1e-4;
-        let beta = 0.5;
         let mut ls = GLLQuadratic::new(alpha, 15);
 
         // Gradient descent builder

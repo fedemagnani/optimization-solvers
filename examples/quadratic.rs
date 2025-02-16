@@ -2,9 +2,9 @@ use nalgebra::{DMatrix, DVector};
 use optimization_solvers::{FuncEvalMultivariate, LineSearchSolver, MoreThuente, Tracer, BFGS};
 
 fn main() {
-    // Setting up log verbosity and tracer
+    // Setting up log verbosity and _
     std::env::set_var("RUST_LOG", "debug");
-    let tracer = Tracer::default().with_normal_stdout_layer().build();
+    let _ = Tracer::default().with_normal_stdout_layer().build();
     // Setting up the oracle
     let matrix = DMatrix::from_vec(2, 2, vec![1., 0., 0., 1.]);
     let f_and_g = |x: &DVector<f64>| -> FuncEvalMultivariate {

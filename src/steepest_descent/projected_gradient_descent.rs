@@ -86,7 +86,7 @@ impl LineSearchSolver for ProjectedGradientDescent {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
-        oracle: & mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
@@ -107,14 +107,14 @@ impl LineSearchSolver for ProjectedGradientDescent {
         Ok(())
     }
 }
-
+#[cfg(test)]
 mod projected_gradient_test {
     use super::*;
     #[test]
     pub fn constrained_grad_desc_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 999.0;

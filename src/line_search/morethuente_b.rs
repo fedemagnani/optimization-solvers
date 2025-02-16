@@ -324,6 +324,7 @@ impl LineSearch for MoreThuenteB {
     }
 }
 
+#[cfg(test)]
 mod morethuente_test {
     use super::*;
     #[test]
@@ -333,7 +334,7 @@ mod morethuente_test {
         // in this example the objecive function has constant hessian, thus its condition number doesn't change on different points.
         // Recall that in gradient descent method, the upper bound of the log error is positive function of the upper bound of condition number of the hessian (ratio between max and min eigenvalue).
         // This causes poor performance when the hessian is ill conditioned
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;

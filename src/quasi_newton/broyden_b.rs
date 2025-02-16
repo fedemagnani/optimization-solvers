@@ -116,7 +116,7 @@ impl LineSearchSolver for BroydenB {
         let step = line_search.compute_step_len(
             self.xk(),
             eval_x_k,
-            &direction,
+            direction,
             oracle,
             max_iter_line_search,
         );
@@ -151,7 +151,8 @@ impl LineSearchSolver for BroydenB {
     }
 }
 
-mod test_BroydenB {
+#[cfg(test)]
+mod test_broyden_b {
     use super::*;
     #[test]
     fn test_outer() {
@@ -162,10 +163,10 @@ mod test_BroydenB {
     }
 
     #[test]
-    pub fn BroydenB_backtracking() {
+    pub fn broyden_b_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.;

@@ -86,7 +86,7 @@ impl LineSearchSolver for BFGS {
         let step = line_search.compute_step_len(
             self.xk(),
             eval_x_k,
-            &direction,
+            direction,
             oracle,
             max_iter_line_search,
         );
@@ -127,6 +127,7 @@ impl LineSearchSolver for BFGS {
     }
 }
 
+#[cfg(test)]
 mod test_bfgs {
     use super::*;
     #[test]
@@ -141,7 +142,7 @@ mod test_bfgs {
     pub fn bfgs_morethuente() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.;
@@ -190,7 +191,7 @@ mod test_bfgs {
     pub fn bfgs_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.;

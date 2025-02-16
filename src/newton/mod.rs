@@ -69,15 +69,15 @@ impl LineSearchSolver for Newton {
     }
 }
 
+#[cfg(test)]
 mod newton_test {
     use super::*;
-    use nalgebra::{Matrix, Matrix2, Vector2};
 
     #[test]
     pub fn newton_morethuente() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1222.0;
@@ -121,7 +121,7 @@ mod newton_test {
     pub fn newton_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1222.0;

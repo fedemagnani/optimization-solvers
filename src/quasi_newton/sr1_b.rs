@@ -115,7 +115,7 @@ impl LineSearchSolver for SR1B {
         let step = line_search.compute_step_len(
             self.xk(),
             eval_x_k,
-            &direction,
+            direction,
             oracle,
             max_iter_line_search,
         );
@@ -147,8 +147,8 @@ impl LineSearchSolver for SR1B {
         Ok(())
     }
 }
-
-mod test_SR1B {
+#[cfg(test)]
+mod test_sr1_b {
     use super::*;
     #[test]
     fn test_outer() {
@@ -159,10 +159,10 @@ mod test_SR1B {
     }
 
     #[test]
-    pub fn SR1B_backtracking() {
+    pub fn sr1_b_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.;

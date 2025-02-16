@@ -56,7 +56,7 @@ impl LineSearchSolver for GradientDescent {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
-        oracle: & mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
@@ -78,6 +78,7 @@ impl LineSearchSolver for GradientDescent {
     }
 }
 
+#[cfg(test)]
 mod gradient_descent_test {
     use super::*;
 
@@ -85,7 +86,7 @@ mod gradient_descent_test {
     pub fn grad_descent_more_thuente() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
@@ -132,7 +133,7 @@ mod gradient_descent_test {
     pub fn grad_desc_backtracking() {
         std::env::set_var("RUST_LOG", "debug");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;

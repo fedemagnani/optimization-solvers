@@ -57,7 +57,8 @@ impl Tracer {
         tracing_subscriber::registry()
             .with(layers)
             .with(env_filter)
-            .init();
+            .try_init()
+            .ok();
         self._guards
     }
 }

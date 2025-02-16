@@ -62,7 +62,7 @@ impl LineSearchSolver for PnormDescent {
         &mut self,
         line_search: &mut LS,
         eval_x_k: &FuncEvalMultivariate, //eval: &FuncEvalMultivariate,
-        oracle: & mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
+        oracle: &mut impl FnMut(&DVector<Floating>) -> FuncEvalMultivariate,
         direction: &DVector<Floating>,
         max_iter_line_search: usize,
     ) -> Result<(), SolverError> {
@@ -84,15 +84,15 @@ impl LineSearchSolver for PnormDescent {
     }
 }
 
+#[cfg(test)]
 mod gpnorm_descent_test {
     use super::*;
-    use nalgebra::{Matrix, Matrix2, Vector2};
 
     #[test]
     pub fn pnorm_morethuente() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;
@@ -143,7 +143,7 @@ mod gpnorm_descent_test {
     pub fn pnorm_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 90.0;

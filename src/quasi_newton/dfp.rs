@@ -86,7 +86,7 @@ impl LineSearchSolver for DFP {
         let step = line_search.compute_step_len(
             self.xk(),
             eval_x_k,
-            &direction,
+            direction,
             oracle,
             max_iter_line_search,
         );
@@ -122,8 +122,8 @@ impl LineSearchSolver for DFP {
         Ok(())
     }
 }
-
-mod test_DFP {
+#[cfg(test)]
+mod test_dfp {
     use super::*;
     #[test]
     fn test_outer() {
@@ -134,10 +134,10 @@ mod test_DFP {
     }
 
     #[test]
-    pub fn DFP_morethuente() {
+    pub fn dfp_morethuente() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.;
@@ -183,10 +183,10 @@ mod test_DFP {
     }
 
     #[test]
-    pub fn DFP_backtracking() {
+    pub fn dfp_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1.;

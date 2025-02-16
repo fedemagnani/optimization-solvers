@@ -149,13 +149,14 @@ impl LineSearchSolver for SpectralProjectedNewton {
     }
 }
 
+#[cfg(test)]
 mod spg_test {
     use super::*;
     #[test]
     pub fn constrained_spg_backtracking() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
         let gamma = 1e9;

@@ -5,20 +5,6 @@ pub enum SparsityPattern {
     Diagonal(DVector<Floating>),
     Normal(DMatrix<Floating>),
 }
-impl SparsityPattern {
-    fn default_diagonal(n: usize) -> Self {
-        SparsityPattern::Diagonal(DVector::from_element(n, 1.0))
-    }
-    fn default_normal(n: usize) -> Self {
-        SparsityPattern::Normal(DMatrix::from_element(n, n, 1.0))
-    }
-    fn new_diagonal(p: DVector<Floating>) -> Self {
-        SparsityPattern::Diagonal(p)
-    }
-    fn new_normal(p: DMatrix<Floating>) -> Self {
-        SparsityPattern::Normal(p)
-    }
-}
 
 pub struct OSGMG {}
 impl OSGMG {
@@ -32,7 +18,6 @@ impl OSGMG {
     ) -> DVector<Floating> {
         let mut x = x0;
         let n = x.len();
-        let mut ngradevl = 0;
         match s_pattern {
             SparsityPattern::Diagonal(mut p) => {
                 //here pv is the elementwise product of p and v
@@ -44,12 +29,12 @@ impl OSGMG {
                     res
                 };
                 let mut cap_g = DVector::zeros(n);
-                for i in 0..max_iter {
+                for _ in 0..max_iter {
                     info!("x: {:?}", x);
                     let eval = oracle(&x);
                     let g = eval.g();
                     let nrmg = g.norm();
-                    let xtmp = &x - &pv(&p, &g);
+                    let xtmp = &x - &pv(&p, g);
                     let eval_tmp = oracle(&xtmp);
                     let gtmp = eval_tmp.g();
                     let nrmgtmp = gtmp.norm();
@@ -83,14 +68,13 @@ impl OSGMG {
             }
             SparsityPattern::Normal(mut p) => {
                 //here pv is the elementwise product of p and v
-                let mut pv = |p: &DMatrix<Floating>, g: &DVector<Floating>| p * g;
+                let pv = |p: &DMatrix<Floating>, g: &DVector<Floating>| p * g;
                 let mut cap_g = DMatrix::zeros(n, n);
-                for i in 0..max_iter {
+                for _ in 0..max_iter {
                     let eval = oracle(&x);
                     let g = eval.g();
-                    let f = eval.f();
                     let nrmg = g.norm();
-                    let xtmp = &x - &pv(&p, &g);
+                    let xtmp = &x - &pv(&p, g);
                     let eval_tmp = oracle(&xtmp);
                     let gtmp = eval_tmp.g();
                     let hesstmp = eval_tmp.hessian().clone().expect("Hessian not provided");
@@ -125,23 +109,24 @@ impl OSGMG {
 
 #[cfg(test)]
 mod tests {
+    impl SparsityPattern {
+        fn default_diagonal(n: usize) -> Self {
+            SparsityPattern::Diagonal(DVector::from_element(n, 1.0))
+        }
+    }
     use super::*;
     use crate::func_eval::FuncEvalMultivariate;
-    use crate::line_search::MoreThuente;
-    use crate::number::Floating;
-    use crate::steepest_descent::gradient_descent::GradientDescent;
     use crate::tracer::LogFormat;
     use crate::tracer::Tracer;
     use nalgebra::{DMatrix, DVector};
 
-    // #[test]
+    #[test]
     pub fn osgmg() {
         std::env::set_var("RUST_LOG", "info");
 
-        let tracer = Tracer::default()
+        let _ = Tracer::default()
             .with_stdout_layer(Some(LogFormat::Normal))
             .build();
-        let gamma = 2.;
         let matrix = DMatrix::from_vec(2, 2, vec![100., 0., 0., 100.]);
         let f_and_g = |x: &DVector<f64>| -> FuncEvalMultivariate {
             let f = x.dot(&(&matrix * x));
@@ -150,7 +135,6 @@ mod tests {
             FuncEvalMultivariate::new(f, g).with_hessian(hessian)
         };
         // Linesearch builder
-        let mut ls = MoreThuente::default();
 
         // Gradient descent builder
         let tol = 1e-12;
