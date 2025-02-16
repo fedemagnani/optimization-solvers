@@ -7,7 +7,7 @@ pub trait BoxProjection {
         &self,
         lower_bound: &DVector<Floating>,
         upper_bound: &DVector<Floating>,
-    ) -> DVector<Floating>;
+    ) -> Self;
 }
 
 impl BoxProjection for DVector<Floating> {

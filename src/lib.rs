@@ -99,7 +99,5 @@ pub mod online {
 }
 pub use online::*;
 
-pub use line_search::*;
-
 pub mod plotter_3d;
 pub use plotter_3d::*;

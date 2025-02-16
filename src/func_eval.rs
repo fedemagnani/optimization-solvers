@@ -21,6 +21,8 @@ impl<T, H> FuncEval<T, H> {
 pub type FuncEvalUnivariate = FuncEval<Floating, Floating>;
 pub type FuncEvalMultivariate = FuncEval<DVector<Floating>, DMatrix<Floating>>;
 
+// We define a macro that will write pub type FuncEvalMultivariatek = FuncEval<Vectork<Floating>, Matrixk<Floating>>; for arbitrary number k
+
 impl FuncEvalMultivariate {
     pub fn with_hessian(mut self, hessian: DMatrix<Floating>) -> Self {
         self.hessian = Some(hessian);

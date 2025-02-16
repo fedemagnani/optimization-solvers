@@ -1,5 +1,3 @@
-use core::panic;
-
 use super::*;
 
 pub trait ComputeDirection {

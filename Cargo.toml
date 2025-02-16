@@ -17,11 +17,9 @@ tracing-subscriber = { version = "0.3.18", features = [
 ] }
 rand = "0.8.5"
 rayon = "1.10.0"
-lbfgsb-sys = { git = "https://github.com/fedemagnani/lbfgsb-sys.git", optional = true }
+lbfgsb-sys = { path = "./lbfgsb-sys", optional = true }
 plotly = "0.10.0"
 num-traits = "0.2.19"
 [features]
 default = ['lbfgsb']
 lbfgsb = ["lbfgsb-sys"]
-
-[dev-dependencies]
