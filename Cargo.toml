@@ -25,9 +25,9 @@ tracing-subscriber = { version = "0.3.18", features = [
 ] }
 rand = "0.8.5"
 rayon = "1.10.0"
-lbfgsb-sys = { version = "0.1.0", path = "./lbfgsb-sys", optional = true }
+lbfgsb-sys = { version = "0.1.0", optional = true }
 plotly = "0.10.0"
 num-traits = "0.2.19"
 [features]
-default = ['lbfgsb']
+default = []
 lbfgsb = ["lbfgsb-sys"]

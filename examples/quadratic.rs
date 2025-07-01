@@ -5,6 +5,7 @@ fn main() {
     // Setting up log verbosity and _
     std::env::set_var("RUST_LOG", "debug");
     let _ = Tracer::default().with_normal_stdout_layer().build();
+
     // Setting up the oracle
     let matrix = DMatrix::from_vec(2, 2, vec![1., 0., 0., 1.]);
     let f_and_g = |x: &DVector<f64>| -> FuncEvalMultivariate {
@@ -12,12 +13,14 @@ fn main() {
         let g = 2. * &matrix * x;
         FuncEvalMultivariate::new(f, g)
     };
+
     // Setting up the line search
     let mut ls = MoreThuente::default();
     // Setting up the main solver, with its parameters and the initial guess
     let tol = 1e-6;
     let x0 = DVector::from_vec(vec![1., 1.]);
     let mut solver = BFGS::new(tol, x0);
+
     // Running the solver
     let max_iter_solver = 100;
     let max_iter_line_search = 10;
