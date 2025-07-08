@@ -30,6 +30,7 @@ num-traits = "0.2.19"
 
 [features]
 lbfgsb = ["lbfgsb-sys"]
+wasm = []  # Feature to enable WASM build
 
 [lib]
 crate-type = ["cdylib", "rlib"]

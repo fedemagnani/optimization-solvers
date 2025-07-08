@@ -13,10 +13,16 @@ This guide explains how to compile and use the optimization solvers in WebAssemb
 ### 1. Build for WASM
 
 ```bash
-# Run the build script
+# Option 1: Use the build script (recommended)
 cd wasm && ./build-wasm.sh
 
-# Or manually:
+# Option 2: Use Cargo with WASM target
+cargo build --target wasm32-unknown-unknown
+
+# Option 3: Use Cargo with wasm feature (shows instructions)
+cargo build --features wasm
+
+# Option 4: Manual wasm-pack build
 wasm-pack build --target web --out-dir wasm/pkg
 ```
 

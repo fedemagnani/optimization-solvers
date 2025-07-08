@@ -57,16 +57,14 @@ impl OptimizationResult {
 
 #[wasm_bindgen]
 pub struct OptimizationSolver {
-    solver_type: String,
     tolerance: f64,
     max_iterations: usize,
 }
 
 #[wasm_bindgen]
 impl OptimizationSolver {
-    pub fn new(solver_type: &str, tolerance: f64, max_iterations: usize) -> Self {
+    pub fn new(tolerance: f64, max_iterations: usize) -> Self {
         Self {
-            solver_type: solver_type.to_string(),
             tolerance,
             max_iterations,
         }

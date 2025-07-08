@@ -22,8 +22,14 @@ solver.minimize(&mut ls, objective, 100, 20, None)?;
 
 ### WebAssembly Usage
 ```bash
-# Build for WASM
+# Option 1: Use the build script
 ./build-wasm.sh
+
+# Option 2: Use Cargo with WASM target
+cargo build --target wasm32-unknown-unknown
+
+# Option 3: Use Cargo with wasm feature (shows build instructions)
+cargo build --features wasm
 
 # Run demo
 python3 -m http.server 8000
