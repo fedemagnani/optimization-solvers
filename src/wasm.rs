@@ -85,17 +85,23 @@ impl OptimizationSolver {
             // Call JavaScript function
             let this = JsValue::NULL;
             let args = js_sys::Array::new();
-            args.push(&JsValue::from_f64(x[0]));
-            args.push(&JsValue::from_f64(x[1]));
+            // Add all vector components to the args array
+            for &value in x.as_slice() {
+                args.push(&JsValue::from_f64(value));
+            }
 
             let js_result = f_and_g_fn.call1(&this, &args).unwrap();
             let js_array = js_sys::Array::from(&js_result);
 
             let f = js_array.get(0).as_f64().unwrap();
-            let g1 = js_array.get(1).as_f64().unwrap();
-            let g2 = js_array.get(2).as_f64().unwrap();
-
-            let g = DVector::from_vec(vec![g1, g2]);
+            // Extract gradient components dynamically
+            let mut g_values = Vec::new();
+            for i in 1..js_array.length() {
+                if let Some(g_val) = js_array.get(i).as_f64() {
+                    g_values.push(g_val);
+                }
+            }
+            let g = DVector::from_vec(g_values);
             FuncEvalMultivariate::new(f, g)
         };
 
@@ -135,17 +141,23 @@ impl OptimizationSolver {
             // Call JavaScript function
             let this = JsValue::NULL;
             let args = js_sys::Array::new();
-            args.push(&JsValue::from_f64(x[0]));
-            args.push(&JsValue::from_f64(x[1]));
+            // Add all vector components to the args array
+            for &value in x.as_slice() {
+                args.push(&JsValue::from_f64(value));
+            }
 
             let js_result = f_and_g_fn.call1(&this, &args).unwrap();
             let js_array = js_sys::Array::from(&js_result);
 
             let f = js_array.get(0).as_f64().unwrap();
-            let g1 = js_array.get(1).as_f64().unwrap();
-            let g2 = js_array.get(2).as_f64().unwrap();
-
-            let g = DVector::from_vec(vec![g1, g2]);
+            // Extract gradient components dynamically
+            let mut g_values = Vec::new();
+            for i in 1..js_array.length() {
+                if let Some(g_val) = js_array.get(i).as_f64() {
+                    g_values.push(g_val);
+                }
+            }
+            let g = DVector::from_vec(g_values);
             FuncEvalMultivariate::new(f, g)
         };
 
