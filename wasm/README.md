@@ -14,10 +14,10 @@ This guide explains how to compile and use the optimization solvers in WebAssemb
 
 ```bash
 # Run the build script
-./build-wasm.sh
+cd wasm && ./build-wasm.sh
 
 # Or manually:
-wasm-pack build --target web --out-dir pkg
+wasm-pack build --target web --out-dir wasm/pkg
 ```
 
 ### 2. Test the Demo
@@ -29,7 +29,7 @@ python3 -m http.server 8000
 # Or with Node.js
 npx serve .
 
-# Then open http://localhost:8000/demo/index.html
+# Then open http://localhost:8000/wasm/demo/index.html
 ```
 
 ## Project Structure
@@ -40,11 +40,12 @@ optimization-solvers/
 │   ├── lib.rs          # Main library with conditional compilation
 │   ├── wasm.rs         # WASM-specific interface
 │   └── ...             # Core solver implementations
-├── demo/
-│   └── index.html      # Interactive demo page
-├── pkg/                # Generated WASM files (after build)
-├── build-wasm.sh       # Build script
-└── WASM_README.md      # This file
+└── wasm/               # WASM-specific files
+    ├── demo/
+    │   └── index.html  # Interactive demo page
+    ├── pkg/            # Generated WASM files (after build)
+    ├── build-wasm.sh   # Build script
+    └── README.md       # This file
 ```
 
 ## WASM Interface

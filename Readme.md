@@ -1,6 +1,36 @@
 # Optimization-Solvers
 
-Numerical optimization solvers for unconstrained and simple bound-constrained convex optimization problems. The solvers are implemented in Rust and are based on the ACM Collected Algorithms. The solvers are designed to be easy to use and to be easily integrated into existing codebases. 
+Numerical optimization solvers for unconstrained and simple bound-constrained convex optimization problems. The solvers are implemented in Rust and are based on the ACM Collected Algorithms. The solvers are designed to be easy to use and to be easily integrated into existing codebases.
+
+## Features
+
+- **Rust Library**: High-performance optimization algorithms for native applications
+- **WebAssembly Support**: Run optimization solvers directly in web browsers
+- **Multiple Algorithms**: Gradient descent, BFGS, Newton's method, and more
+- **Easy Integration**: Simple API for both Rust and JavaScript environments
+
+## Quick Start
+
+### Rust Usage
+```rust
+use optimization_solvers::{GradientDescent, BackTracking};
+
+let mut solver = GradientDescent::new(1e-6, x0);
+let mut ls = BackTracking::new(1e-4, 0.5);
+solver.minimize(&mut ls, objective, 100, 20, None)?;
+```
+
+### WebAssembly Usage
+```bash
+# Build for WASM
+./build-wasm.sh
+
+# Run demo
+python3 -m http.server 8000
+# Open http://localhost:8000/wasm/demo/index.html
+```
+
+See the [WASM documentation](wasm/README.md) for detailed web usage instructions. 
 
 > **Note:** Currently the unique non-rust solver is L-BFGS-B, which uses code bindings to the original Fortran implementation.
 

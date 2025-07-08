@@ -6,11 +6,8 @@ use nalgebra::{DMatrix, DVector};
 #[cfg(feature = "lbfgsb")]
 use std::ffi::CStr;
 
-#[cfg(feature = "std")]
 use tracing::{debug, error, info, trace, warn};
-#[cfg(feature = "std")]
 use tracing_appender::non_blocking::WorkerGuard;
-#[cfg(feature = "std")]
 use tracing_subscriber::{
     fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer, Registry,
 };
@@ -31,9 +28,7 @@ use tracing_subscriber::{
 //      - Define a tolerance level "q" and set the general solution <= q. Apply some transformations if needed to solve the inequality for the iteration number k: this gives you a lower bound of the number of iterations needed to achieve the desired tolerance. Typically this lower bound is increasing function of suboptimality of the initial point (f(x_0) - p^*) and the upper bound of the condition number of the hessian (M/m). Of course it should be decreasing of the tolerance level q (the more tolerance you have, the lower is the number of required iterations to achieve that convergence).
 //      - From the inequality of the general solution, apply some transformations to verify what is the convergence rate of the algorithm (for example in the gradient descent if you apply the log you come up with a function which is linear in k, describing a linear convergence rate).
 
-#[cfg(feature = "std")]
 pub mod tracer;
-#[cfg(feature = "std")]
 pub use tracer::*;
 
 pub mod ls_solver;
@@ -95,9 +90,9 @@ pub use steepest_descent::*;
 pub mod newton;
 pub use newton::*;
 
-#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod plotter_3d;
-#[cfg(all(feature = "std", not(target_arch = "wasm32")))]
+#[cfg(not(target_arch = "wasm32"))]
 pub use plotter_3d::*;
 
 // WASM-specific modules and exports
