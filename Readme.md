@@ -1,82 +1,66 @@
-# Optimization-Solvers
+# Optimization Solvers
 
-Numerical optimization solvers for unconstrained and simple bound-constrained convex optimization problems. The solvers are implemented in Rust and are based on the ACM Collected Algorithms. The solvers are designed to be easy to use and to be easily integrated into existing codebases.
-
-## Features
-
-- **Rust Library**: High-performance optimization algorithms for native applications
-- **WebAssembly Support**: Run optimization solvers directly in web browsers
-- **Multiple Algorithms**: Gradient descent, BFGS, Newton's method, and more
-- **Easy Integration**: Simple API for both Rust and JavaScript environments
+A comprehensive Rust library implementing composable state-of-the-art numerical optimization algorithms with WebAssembly support for browser-based optimization.
 
 ## Quick Start
 
-### Rust Usage
 ```rust
-use optimization_solvers::{GradientDescent, BackTracking};
+use optimization_solvers::{GradientDescent, BFGS, Newton};
 
-let mut solver = GradientDescent::new(1e-6, x0);
-let mut ls = BackTracking::new(1e-4, 0.5);
-solver.minimize(&mut ls, objective, 100, 20, None)?;
+// Run optimization with any solver
+let result = solver.minimize(objective_function, max_iterations);
 ```
 
-### WebAssembly Usage
+## 📚 Documentation & Resources
+
+- **[Documentation](https://deepwiki.com/fedemagnani/optimization-solvers)** - Full Rust API documentation
+- **[Examples](./examples/)** - Complete examples for all optimization algorithms
+- **[WASM Documentation](./wasm/README.md)** - Browser-based optimization with WebAssembly
+- **[Academic resources](./resources.md)** - Misc of papers/books about numerical optimization
+
+## 🧮 Solver Categories
+
+### First-Order Methods
+- **[Gradient Descent](./src/steepest_descent/gradient_descent.rs)** - Classic steepest descent
+- **[Projected Gradient](./src/steepest_descent/projected_gradient_descent.rs)** - Constrained optimization
+- **[Coordinate Descent](./src/steepest_descent/coordinate_descent.rs)** - Coordinate-wise optimization
+- **[SPG](./src/steepest_descent/spg.rs)** - Spectral Projected Gradient
+- **[P-Norm Descent](./src/steepest_descent/pnorm_descent.rs)** - Lp-norm based descent
+
+### Quasi-Newton Methods
+- **[BFGS](./src/quasi_newton/bfgs.rs)** - Broyden-Fletcher-Goldfarb-Shanno
+- **[DFP](./src/quasi_newton/dfp.rs)** - Davidon-Fletcher-Powell
+- **[Broyden](./src/quasi_newton/broyden.rs)** - Broyden's method
+- **[L-BFGS-B](./src/quasi_newton/lbfgsb.rs)** - Limited-memory BFGS with bounds (enable `lbfgsb` feature flag)
+
+### Second-Order Methods
+- **[Newton's Method](./src/newton/mod.rs)** - Classical Newton optimization
+- **[Projected Newton](./src/newton/projected_newton.rs)** - Constrained Newton
+- **[SPN](./src/newton/spn.rs)** - Spectral Projected Newton
+
+## 🚀 Getting Started
+
 ```bash
-./build-wasm.sh
+# Add to Cargo.toml
+cargo add optimization-solvers
+
+# Run examples
+cargo run --example gradient_descent_example
+cargo run --example bfgs_example
+
+# Build for WebAssembly
+cd wasm && ./build-wasm.sh
 ```
 
-See the [WASM documentation](wasm/README.md) for detailed web usage instructions. 
+## 📦 Features
 
-> **Note:** Currently the unique non-rust solver is L-BFGS-B, which uses code bindings to the original Fortran implementation.
-
-Modules and submodules of this crate follow the bipartition presented in [Nocedal, J., & Wright, S. J. (2006). Numerical optimization] regarding optimization algorithms:
-- Line search methods:
-    - Steepest descent methods
-    - Newton methods
-    - Quasi-Newton methods
-    - Conjugate gradient methods
-- Trust region methods:
+- **Multiple Algorithms**: 15+ optimization algorithms
+- **WebAssembly Support**: Run in browsers with full performance
+- **Line Search Methods**: Backtracking, More-Thuente, and more
+- **Bounded Optimization**: Support for box constraints
+- **Comprehensive Examples**: Ready-to-run examples for all solvers
 
 
-![Quadratic](assets/quadratic.png)
-In the figure above: minimization of quadratic function using gradient descent solver
 
 
-# Todo
-- Consider implementing solutions for [line search in constrained optimization](https://scicomp.stackexchange.com/questions/7938/line-search-for-constrained-optimization)
-- Consider adding [preconditioning techniques]()
 
-## Links
-- ACM digital library: https://dl.acm.org/
-- ACM Collected Algorithms: https://calgo.acm.org/
-- IEEE Xplore: https://ieeexplore.ieee.org/Xplore/home.jsp
-
-## Books and articles on convex optimization:
-
-
-- GLL non-monotone line search algorithm: [L. Grippo, F. Lampariello and S. Lucidi, “A Nonmonotone Line Search Technique for Newton’s Methods,” SIAM Journal on Numerical Analysis, Vol. 23, No. 4, 1986, pp. 707-716.](https://epubs.siam.org/doi/10.1137/0723046)
-- Hessian ill-conditioning hobbles first order methods (section 3.1): [Nicholas Vieau Alger (2019), "Data-Scalable Hessian Preconditioning for
-Distributed Parameter PDE-Constrained Inverse Problems", PhD Thesis, University of Texas at Austin](https://repositories.lib.utexas.edu/server/api/core/bitstreams/95072b2e-e489-4026-b5b9-11ab4e12fdd7/content)
-- Misc. on numerical optimization: [Boyd, S., & Vandenberghe, L. (2004). Convex optimization. Cambridge university press.](https://web.stanford.edu/~boyd/cvxbook/) (Chapter 9)
-- Misc. on numerical optimization: [Nocedal, J., & Wright, S. J. (2006). Numerical optimization. Springer Science & Business Media.](https://www.math.uci.edu/~qnie/Publications/NumericalOptimization.pdf) 
-- Misc. on numerical optimization:[Neculai Andrei, 2022. "Modern Numerical Nonlinear Optimization," Springer Optimization and Its Applications, Springer, number 978-3-031-08720-2, December](https://link.springer.com/book/10.1007/978-3-031-08720-2)
-- Misc. on numerical optimization + cubic and quadratic interpolation: [Sun, Wenyu & Yuan, Ya-xiang. (2006). Optimization theory and methods. Nonlinear programming](https://bayanbox.ir/view/1460469776013846613/Sun-Yuan-Optimization-theory.pdf)
-- Moré-Thuente line search algorithm: [Jorge J. Moré and David J. Thuente. 1994. Line search algorithms with guaranteed sufficient decrease. ACM Trans. Math. Softw. 20, 3 (Sept. 1994), 286–307.](https://www.ii.uib.no/~lennart/drgrad/More1994.pdf)
-- NEOS Guide: [NEOS Guide](https://neos-guide.org/guide/algorithms/)
-- Online scaling gradient methods (OSGM): [Gao, W., Chu, Y. C., Ye, Y., & Udell, M. (2024). Gradient Methods with Online Scaling. arXiv preprint arXiv:2411.01803](https://arxiv.org/pdf/2411.01803)
-- Survey of existing solvers for bound-constrained optimization: [Tröltzsch, A. (2007). Benchmarking of bound-constrained optimization software](https://www.cerfacs.fr/algor/reports/2007/WN_PA_07_143.pdf) 
-- Survey of existing solvers for bound-constrained optimization: [Birgin, E.G., Gentil, J.M. Evaluating bound-constrained minimization software. Comput Optim Appl 53, 347–373 (2012)](https://www.ime.usp.br/%7Eegbirgin/publications/bg-bdseval.pdf)
-- Spectral Projected Gradient Method (ACM Algo 813): [Birgin, Ernesto & Martínez, José Mario & Raydan, Marcos. (2014). Spectral Projected Gradient Methods: Review and Perspectives. Journal of Statistical Software. 60. 1-21. 10.18637/jss.v060.i03.](https://www.ime.usp.br/~egbirgin/publications/bmr5.pdf)
-
-## Nice community questions
-
-- Preconditioning gradient descent: https://stats.stackexchange.com/questions/91862/preconditioning-gradient-descent
-- Basic preconditioned gradient descent example: https://stats.stackexchange.com/questions/486594/basic-preconditioned-gradient-descent-example
-- Relating condition number of hessian to the rate of convergence: https://math.stackexchange.com/questions/2285282/relating-condition-number-of-hessian-to-the-rate-of-convergence
-- What is ill conditioning for a system of linear equations: https://www.quora.com/What-is-ill-conditioning-for-systems-of-linear-equations
-- What is a ill conditioned matrix: https://www.quora.com/What-is-an-ill-conditioned-matrix
-- What methods can be used for preconditioning of ill conditioned matrix: https://www.quora.com/What-methods-can-be-used-for-preconditioning-of-ill-conditioned-matrix 
--  Subtractive cancellation errors during computation: https://tobydriscoll.net/fnc-julia/intro/conditioning.html
-- Painless conjugate gradient: https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
-- A note on preconditioning: https://www.math.iit.edu/~fass/477577_Chapter_16.pdf
-![optim_family](assets/optim_family.png)
