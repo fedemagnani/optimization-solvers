@@ -90,5 +90,13 @@ pub use steepest_descent::*;
 pub mod newton;
 pub use newton::*;
 
+#[cfg(not(target_arch = "wasm32"))]
 pub mod plotter_3d;
+#[cfg(not(target_arch = "wasm32"))]
 pub use plotter_3d::*;
+
+// WASM-specific modules and exports
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
+#[cfg(target_arch = "wasm32")]
+pub use wasm::*;

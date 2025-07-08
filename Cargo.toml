@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Federico Magnani <0xdrun@gmail.com>"]
 
-description = "Numerical optimization solvers for unconstrained and simple-bounds constrained convex optimization problems"
+description = "Numerical optimization solvers for unconstrained and simple-bounds constrained convex optimization problems. Wasm compatible"
 repository = "https://github.com/fedemagnani/optimization-solvers"
 license = "MIT OR Apache-2.0"
 keywords = ["optimization", "convex", "minimization", "solver", "math"]
@@ -16,18 +16,27 @@ derive-getters = "0.5.0"
 nalgebra = { version = "0.33.2" }
 thiserror = "2.0.3"
 
-tracing = "0.1.40"
-tracing-appender = "0.2.3"
+# Dependencies
+tracing = { version = "0.1.40" }
+tracing-appender = { version = "0.2.3" }
 tracing-subscriber = { version = "0.3.18", features = [
     "env-filter",
     "fmt",
     "json",
 ] }
-rand = "0.8.5"
-rayon = "1.10.0"
 lbfgsb-sys = { version = "0.1.0", optional = true }
-plotly = "0.10.0"
+plotly = { version = "0.10.0" }
 num-traits = "0.2.19"
+
 [features]
-default = []
 lbfgsb = ["lbfgsb-sys"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+# WASM dependencies (only included when building for wasm32)
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["console"] }
+getrandom = { version = "0.2", features = ["js"] }

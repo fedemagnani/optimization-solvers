@@ -26,8 +26,6 @@ fn main() {
     };
 
     // Setting up the line search (backtracking)
-    let armijo_factor = 1e-4;
-    let beta = 0.5;
     let mut ls = MoreThuente::default();
 
     // Setting up the solver with box constraints

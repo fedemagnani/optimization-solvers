@@ -1,4 +1,4 @@
-use nalgebra::{DMatrix, DVector};
+use nalgebra::DVector;
 use optimization_solvers::{FuncEvalMultivariate, LineSearchSolver, MoreThuente, Tracer, BFGS};
 
 fn main() {
