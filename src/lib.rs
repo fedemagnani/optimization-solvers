@@ -57,8 +57,6 @@ pub mod quasi_newton {
     pub use dfp::*;
     pub mod dfp_b;
     pub use dfp_b::*;
-    pub mod sr1;
-    pub use sr1::*;
     pub mod sr1_b;
     pub use sr1_b::*;
 
@@ -91,13 +89,6 @@ pub use steepest_descent::*;
 
 pub mod newton;
 pub use newton::*;
-
-pub mod online {
-    use super::*;
-    pub mod osgmg;
-    pub use osgmg::*;
-}
-pub use online::*;
 
 pub mod plotter_3d;
 pub use plotter_3d::*;
