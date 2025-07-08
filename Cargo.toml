@@ -16,18 +16,36 @@ derive-getters = "0.5.0"
 nalgebra = { version = "0.33.2" }
 thiserror = "2.0.3"
 
-tracing = "0.1.40"
-tracing-appender = "0.2.3"
-tracing-subscriber = { version = "0.3.18", features = [
+# Conditional dependencies for different targets
+tracing = { version = "0.1.40", optional = true }
+tracing-appender = { version = "0.2.3", optional = true }
+tracing-subscriber = { version = "0.3.18", optional = true, features = [
     "env-filter",
     "fmt",
     "json",
 ] }
-rand = "0.8.5"
-rayon = "1.10.0"
+rand = { version = "0.8.5", optional = true, features = ["getrandom"] }
+rayon = { version = "1.10.0", optional = true }
 lbfgsb-sys = { version = "0.1.0", optional = true }
-plotly = "0.10.0"
+plotly = { version = "0.10.0", optional = true }
 num-traits = "0.2.19"
+
+# WASM-specific dependencies
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["console"] }
+
 [features]
-default = []
+default = ["std"]
+std = ["tracing", "tracing-appender", "tracing-subscriber", "rand", "rayon", "plotly"]
 lbfgsb = ["lbfgsb-sys"]
+wasm = ["wasm-bindgen", "js-sys", "web-sys"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = { version = "0.3", features = ["console"] }
+getrandom = { version = "0.2", features = ["js"] }
