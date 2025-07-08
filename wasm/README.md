@@ -73,7 +73,7 @@ import init, { OptimizationSolver } from './pkg/optimization_solvers.js';
 await init();
 
 // Create solver
-const solver = OptimizationSolver.new('gradient_descent', 1e-6, 100);
+const solver = OptimizationSolver.new(1e-6, 100);
 
 // Define objective function (returns [f, g1, g2, ...])
 function objective(x) {
@@ -220,7 +220,7 @@ function OptimizationDemo() {
 
     useEffect(() => {
         init().then(() => {
-            setSolver(new OptimizationSolver('gradient_descent', 1e-6, 100));
+            setSolver(new OptimizationSolver(1e-6, 100));
         });
     }, []);
 
@@ -277,10 +277,10 @@ export default {
       loading: false
     };
   },
-  async mounted() {
-    await init();
-    this.solver = new OptimizationSolver('gradient_descent', 1e-6, 100);
-  },
+      async mounted() {
+        await init();
+        this.solver = new OptimizationSolver(1e-6, 100);
+    },
   methods: {
     runOptimization() {
       if (!this.solver) return;
