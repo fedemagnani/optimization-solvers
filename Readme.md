@@ -13,6 +13,7 @@ let result = solver.minimize(objective_function, max_iterations);
 
 ## 📚 Documentation & Resources
 
+- **[Live WASM demo](https://fedemagnani.github.io/optimization-solvers-demo/)**
 - **[Documentation](https://deepwiki.com/fedemagnani/optimization-solvers)** - Full Rust API documentation
 - **[Examples](./examples/)** - Complete examples for all optimization algorithms
 - **[WASM Documentation](./wasm/README.md)** - Browser-based optimization with WebAssembly
