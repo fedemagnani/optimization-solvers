@@ -195,31 +195,49 @@ impl OptimizationSolver {
 
         // Convert initial point
         let x0_vec = DVector::from_vec(x0.to_vec());
+        let n = x0_vec.len();
 
         // Create objective function closure with Hessian
         let objective = |x: &DVector<f64>| -> FuncEvalMultivariate {
             // Call JavaScript function
             let this = JsValue::NULL;
             let args = js_sys::Array::new();
-            args.push(&JsValue::from_f64(x[0]));
-            args.push(&JsValue::from_f64(x[1]));
+            // Add all vector components to the args array
+            for &value in x.as_slice() {
+                args.push(&JsValue::from_f64(value));
+            }
 
             let js_result = f_and_g_and_h_fn.call1(&this, &args).unwrap();
             let js_array = js_sys::Array::from(&js_result);
 
             let f = js_array.get(0).as_f64().unwrap();
-            let g1 = js_array.get(1).as_f64().unwrap();
-            let g2 = js_array.get(2).as_f64().unwrap();
 
-            let g = DVector::from_vec(vec![g1, g2]);
+            // Extract gradient components
+            let mut g_values = Vec::new();
+            for i in 1..=n {
+                if let Some(g_val) = js_array.get(i as u32).as_f64() {
+                    g_values.push(g_val);
+                } else {
+                    panic!("Expected gradient component at index {}", i);
+                }
+            }
+            let g = DVector::from_vec(g_values);
 
-            // Extract Hessian (2x2 matrix)
-            let h11 = js_array.get(3).as_f64().unwrap();
-            let h12 = js_array.get(4).as_f64().unwrap();
-            let h21 = js_array.get(5).as_f64().unwrap();
-            let h22 = js_array.get(6).as_f64().unwrap();
+            // Extract Hessian components (n×n matrix)
+            let mut hessian_values = Vec::new();
+            let hessian_start = n + 1;
+            let expected_hessian_size = n * n;
 
-            let hessian = DMatrix::from_vec(2, 2, vec![h11, h21, h12, h22]);
+            for i in 0..expected_hessian_size {
+                let idx = hessian_start + i;
+                if let Some(h_val) = js_array.get(idx as u32).as_f64() {
+                    hessian_values.push(h_val);
+                } else {
+                    panic!("Expected Hessian component at index {}", idx);
+                }
+            }
+
+            let hessian = DMatrix::from_vec(n, n, hessian_values);
 
             FuncEvalMultivariate::new(f, g).with_hessian(hessian)
         };
