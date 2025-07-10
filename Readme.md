@@ -2,6 +2,8 @@
 
 A comprehensive Rust library implementing composable state-of-the-art numerical optimization algorithms with WebAssembly support for browser-based optimization.
 
+- **[Live WASM demo](https://fedemagnani.github.io/optimization-solvers-demo/)** - Run some optimization problems from yout browser
+
 ## Quick Start
 
 ```rust
@@ -13,7 +15,6 @@ let result = solver.minimize(objective_function, max_iterations);
 
 ## 📚 Documentation & Resources
 
-- **[Live WASM demo](https://fedemagnani.github.io/optimization-solvers-demo/)** - Run some optimization problems from yout browser
 - **[Documentation](https://deepwiki.com/fedemagnani/optimization-solvers)** - Full Rust API documentation
 - **[Examples](./examples/)** - Complete examples for all optimization algorithms
 - **[WASM Documentation](./wasm/README.md)** - Browser-based optimization with WebAssembly
